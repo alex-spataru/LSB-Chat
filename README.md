@@ -6,7 +6,7 @@ The data is encrypted and subsequently hidden by LSB within an image, which is s
 
 In order to read the original data, the user who receives the data must know the encryption password. Otherwise, he or she will not be able to read the received data.
 
-![Screenshot][doc/screenshot.png]
+![Screenshot](doc/screenshot.png)
 
 ### Project structture
 
