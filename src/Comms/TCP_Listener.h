@@ -19,3 +19,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+#ifndef TCP_LISTENER_H
+#define TCP_LISTENER_H
+
+#include <QtNetwork>
+#include <QTcpServer>
+
+class P2P_Connection;
+class TCP_Listener : public QTcpServer {
+    Q_OBJECT
+
+signals:
+    void newConnection(P2P_Connection *connection);
+
+public:
+    TCP_Listener(QObject *parent = Q_NULLPTR);
+
+protected:
+    void incomingConnection(qintptr socketDescriptor) override;
+};
+
+#endif

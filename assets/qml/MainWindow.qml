@@ -29,6 +29,18 @@ import "Widgets" as Widgets
 
 ApplicationWindow {
     //
+    // Set window name
+    //
+    id: mw
+
+    //
+    // Configure signals
+    //
+    signal attachClicked()
+    signal settingsClicked()
+    signal messageSent(var message)
+
+    //
     // Window geometry
     //
     minimumWidth: 640
@@ -64,6 +76,9 @@ ApplicationWindow {
 
         Widgets.ChatTextBox {
             Layout.fillWidth: true
+            onAttachClicked: mw.attachClicked()
+            onMessageSent: mw.messageSent(message)
+            onSettingsClicked: mw.settingsClicked()
         }
     }
 }

@@ -20,29 +20,26 @@
  * THE SOFTWARE.
  */
 
-import QtQuick 2.0
+#include "TCP_Listener.h"
+#include "P2P_Connection.h"
 
-Item {
-    id: app
+/**
+ * @brief TCP_Listener::TCP_Listener
+ * @param parent
+ *
+ * Configure the TCP server to listen for connections from any address
+ */
+TCP_Listener::TCP_Listener(QObject *parent) : QTcpServer(parent) {
+    listen(QHostAddress::Any);
+}
 
-    //
-    // Global properties
-    //
-    readonly property int spacing: 8
-
-    //
-    // MainWindow instance
-    //
-    MainWindow {
-        id: mainWindow
-        onSettingsClicked: preferences.showNormal()
-        Component.onCompleted: mainWindow.show()
-    }
-
-    //
-    // Preferences window
-    //
-    PreferencesWindow {
-        id: preferences
-    }
+/**
+ * @brief TCP_Listener::incomingConnection
+ * @param socketDescriptor
+ *
+ * Respond to a connection request by establishing a new TCP connection with the petitioner
+ */
+void TCP_Listener::incomingConnection(qintptr socketDescriptor) {
+    P2P_Connection* connection = new P2P_Connection(socketDescriptor, this);
+    emit newConnection(connection);
 }

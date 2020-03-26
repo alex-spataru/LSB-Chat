@@ -20,29 +20,7 @@
  * THE SOFTWARE.
  */
 
-import QtQuick 2.0
+#ifndef P2P_MANAGER_H
+#define P2P_MANAGER_H
 
-Item {
-    id: app
-
-    //
-    // Global properties
-    //
-    readonly property int spacing: 8
-
-    //
-    // MainWindow instance
-    //
-    MainWindow {
-        id: mainWindow
-        onSettingsClicked: preferences.showNormal()
-        Component.onCompleted: mainWindow.show()
-    }
-
-    //
-    // Preferences window
-    //
-    PreferencesWindow {
-        id: preferences
-    }
-}
+#endif

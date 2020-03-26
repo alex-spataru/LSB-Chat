@@ -27,23 +27,53 @@ import QtQuick.Controls 2.0
 RowLayout {
     spacing: app.spacing
 
+    //
+    // Define signals
+    //
+    signal attachClicked()
+    signal settingsClicked()
+    signal messageSent(var message)
+
+    //
+    // Clear message text field when a message is sent
+    //
+    onMessageSent: textField.clear()
+
+    //
+    // Settings button
+    //
     Button {
+        onClicked: settingsClicked()
         Layout.alignment: Qt.AlignVCenter
         icon.source: "qrc:/icons/settings-24px.svg"
     }
 
+    //
+    // Message field
+    //
     TextField {
+        id: textField
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignVCenter
         placeholderText: qsTr("Please type a message") + "..."
+        onAccepted: messageSent(text)
     }
 
+    //
+    // Send button
+    //
     Button {
         Layout.alignment: Qt.AlignVCenter
+        enabled: textField.text.length > 0
+        onClicked: messageSent(textField.text)
         icon.source: "qrc:/icons/send-24px.svg"
     }
 
+    //
+    // Attach button
+    //
     Button {
+        onClicked: attachClicked()
         Layout.alignment: Qt.AlignVCenter
         icon.source: "qrc:/icons/attach_file-24px.svg"
     }

@@ -21,6 +21,29 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Window 2.0
+import QtQuick.Layouts 1.0
+import QtQuick.Controls 2.0
 
-Item {
+import "Widgets" as Widgets
+
+Window {
+    //
+    // Window title
+    //
+    title: qsTr("Preferences")
+
+    //
+    // Window geometry
+    //
+    minimumWidth: 240
+    minimumHeight: 320
+
+    //
+    // Background widget
+    //
+    Rectangle {
+        color: "#ededed"
+        anchors.fill: parent
+    }
 }
