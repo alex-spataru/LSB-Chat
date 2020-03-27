@@ -23,4 +23,47 @@
 #ifndef P2P_MANAGER_H
 #define P2P_MANAGER_H
 
+#include <QTimer>
+#include <QObject>
+#include <QByteArray>
+#include <QUdpSocket>
+#include <QHostAddress>
+
+class Discovery;
+class NetworkComms;
+class P2P_Connection;
+
+class P2P_Manager : public QObject {
+    Q_OBJECT
+
+public:
+    P2P_Manager(NetworkComms* comms);
+
+    QString userName() const;
+    void startBroadcasting();
+    void setServerPort(const quint16 port);
+    bool isLocalHostAddress(const QHostAddress& address);
+
+signals:
+    void newConnection(P2P_Connection* connection);
+
+private slots:
+    void sendBroadcastDatagram();
+    void readBroadcastDatagram();
+
+private:
+    void updateAddresses();
+
+private:
+    quint16 m_serverPort;
+    QString m_username;
+    NetworkComms* m_client;
+
+    QList<QHostAddress> m_broadcastAddresses;
+    QList<QHostAddress> m_ipAddresses;
+
+    QTimer m_broadcastTimer;
+    QUdpSocket m_broadcastSocket;
+};
+
 #endif

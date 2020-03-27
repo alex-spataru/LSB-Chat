@@ -51,7 +51,6 @@ macx* {
 
 HEADERS += \
     src/AppInfo.h \
-    src/Comms/Discovery.h \
     src/Comms/NetworkComms.h \
     src/Comms/P2P_Connection.h \
     src/Comms/P2P_Manager.h \
@@ -63,7 +62,6 @@ HEADERS += \
     src/QmlBridge.h
 
 SOURCES += \
-    src/Comms/Discovery.cpp \
     src/Comms/NetworkComms.cpp \
     src/Comms/P2P_Connection.cpp \
     src/Comms/P2P_Manager.cpp \
