@@ -26,6 +26,7 @@
 #include <QQmlApplicationEngine>
 
 #include "AppInfo.h"
+#include "QmlBridge.h"
 
 int main(int argc, char** argv) {
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -36,8 +37,10 @@ int main(int argc, char** argv) {
     app.setOrganizationName(APP_DEVELOPER);
     app.setOrganizationDomain(APP_SUPPORT_URL);
 
+    QmlBridge bridge;
     QQmlApplicationEngine engine;
     QQuickStyle::setStyle("Imagine");
+    engine.rootContext()->setContextProperty("CBridge", &bridge);
     engine.rootContext()->setContextProperty("CAppName", app.applicationName());
     engine.rootContext()->setContextProperty("CAppVersion", app.applicationVersion());
     engine.rootContext()->setContextProperty("CAppOrganization", app.organizationName());

@@ -35,6 +35,7 @@ Item {
     //
     MainWindow {
         id: mainWindow
+        onMessageSent: CBridge.sendMessage(message)
         onSettingsClicked: preferences.showNormal()
         Component.onCompleted: mainWindow.show()
     }

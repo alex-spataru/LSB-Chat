@@ -202,6 +202,10 @@ void P2P_Manager::readBroadcastDatagram() {
         // Get server port
         senderServerPort = reader.toInteger();
 
+        // Do not autoconnect to ourselves
+        if (isLocalHostAddress(senderIp) && senderServerPort == m_serverPort)
+            continue;
+
         // Register new connection with client
         if (!m_client->hasConnection(senderIp)) {
             // Create new connection

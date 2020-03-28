@@ -154,95 +154,67 @@ void P2P_Connection::timerEvent(QTimerEvent* event) {
  * Process and react to incoming data from peer
  */
 void P2P_Connection::processReadyRead() {
-    // We got more incoming data, reparse
+    // we've got more data, let's parse
     m_reader.reparse();
-
     while (m_reader.lastError() == QCborError::NoError) {
-        // We are still waiting for greeting message from peer
         if (m_connectionState == WaitingForGreeting) {
-            // Protocol error
             if (!m_reader.isArray())
-                break;
+                break;                  // protocol error
 
-            // Everything good, remain in the CBOR array
-            m_reader.enterContainer();
+            m_reader.enterContainer();    // we'll be in this array forever
             m_connectionState = ReadingGreeting;
-        }
-
-        // Only one item in the CBOR array
-        else if (m_reader.containerDepth() == 1) {
-            // Current state: no command read
-            // => Next state: read command ID
+        } else if (m_reader.containerDepth() == 1) {
+            // Current m_connectionState: no command read
+            // Next m_connectionState: read command ID
             if (!m_reader.hasNext()) {
                 m_reader.leaveContainer();
                 disconnectFromHost();
                 return;
             }
 
-            // Protocol error
-            if (!(m_reader.isMap()) ||
-                !(m_reader.isLengthKnown()) ||
-                !(m_reader.length() == 1))
-                break;
-
-            // Enter CBOR container
+            if (!m_reader.isMap() || !m_reader.isLengthKnown() || m_reader.length() != 1)
+                break;                  // protocol error
             m_reader.enterContainer();
-        }
-
-        // Undefined data type
-        else if (m_currentDataType == Undefined) {
-            // Protocol error
+        } else if (m_currentDataType == Undefined) {
+            // Current m_connectionState: read command ID
+            // Next m_connectionState: read command payload
             if (!m_reader.isInteger())
-                break;
-
-            // Get current data type
+                break;                  // protocol error
             m_currentDataType = DataType(m_reader.toInteger());
             m_reader.next();
-        }
-
-        // Other data types, process messages
-        else {
-            // Ready binary data
+        } else {
+            // Current m_connectionState: read command payload
             if (m_reader.isByteArray()) {
-                auto res = m_reader.readByteArray();
-                m_buffer += res.data;
-                if (res.status != QCborStreamReader::EndOfString)
+                auto r = m_reader.readByteArray();
+                m_buffer += r.data;
+                if (r.status != QCborStreamReader::EndOfString)
                     continue;
+            } else if (m_reader.isNull()) {
+                m_reader.next();
+            } else {
+                break;                   // protocol error
             }
 
-            // Read null data
-            else if (m_reader.isNull())
-                m_reader.next();
-
-            // Protocol error
-            else
-                break;
-
-            // Go to next state: no command read
+            // Next m_connectionState: no command read
+            m_reader.leaveContainer();
             if (m_transferTimerId != -1) {
                 killTimer(m_transferTimerId);
                 m_transferTimerId = -1;
             }
 
-            // If we are waiting for a greeting, try to proccess it
             if (m_connectionState == ReadingGreeting) {
                 if (m_currentDataType != Greeting)
-                    break;
-
+                    break;              // protocol error
                 processGreeting();
-            }
-
-            // Connection is established, process incoming data
-            else
+            } else {
                 processData();
+            }
         }
     }
 
-    // If there was a CBOR error, abort connection
     if (m_reader.lastError() != QCborError::EndOfFile)
-        abort();
+        abort();       // parse error
 
-    // Reset transfer timeout timer
     if (m_transferTimerId != -1 && m_reader.containerDepth() > 1)
         m_transferTimerId = startTimer(TRANSFER_TIMEOUT);
 }
@@ -276,10 +248,10 @@ void P2P_Connection::sendGreetingMessage() {
     m_writer.startArray();
 
     // Send greeting packet through CBOR stream
-    m_writer.startMap(1);               // Start new message
-    m_writer.append(Greeting);          // Set message type
-    m_writer.append(m_greetingMessage); // Append greeting message
-    m_writer.endMap();                  // End message
+    m_writer.startMap(1);                        // Start new message
+    m_writer.append(Greeting);                   // Set message type
+    m_writer.append(m_greetingMessage.toUtf8()); // Append greeting message
+    m_writer.endMap();                           // End message
 
     // Only send the greeting message once
     m_greetingMessageSent = true;
@@ -296,6 +268,7 @@ void P2P_Connection::sendGreetingMessage() {
  * and reacts according to the message type.
  */
 void P2P_Connection::processData() {
+
     // Binary data message received, emit new signal and let the program process the data
     if (m_currentDataType == BinaryData)
         emit newMessage(m_username, m_buffer);
@@ -324,8 +297,9 @@ void P2P_Connection::processData() {
  * ping/pong loop and completes the peer connection setup process.
  */
 void P2P_Connection::processGreeting() {
-    // Construct user name from buffer and peer's IP address
-    m_username = QString::fromUtf8(m_buffer) + "@" + peerAddress().toString();
+    // Construct user name from buffer and peer's IPv4 address
+    QString ipv4 = QHostAddress(peerAddress().toIPv4Address()).toString();
+    m_username = QString::fromUtf8(m_buffer) + "@" + ipv4;
 
     // Reset current data type and buffer
     m_currentDataType = Undefined;

@@ -19,3 +19,93 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+#include "QmlBridge.h"
+
+QmlBridge::QmlBridge() {
+    connect(&m_comms, SIGNAL(newParticipant(QString)),
+            this,     SIGNAL(newParticipant(QString)));
+    connect(&m_comms, SIGNAL(participantLeft(QString)),
+            this,     SIGNAL(participantLeft(QString)));
+    connect(&m_comms, SIGNAL(newMessage(QString, QByteArray)),
+            this,       SLOT(handleMessages(QString, QByteArray)));
+    connect(this,     SIGNAL(newParticipant(QString)),
+            this,       SLOT(handleNewParticipant(QString)));
+    connect(this,     SIGNAL(participantLeft(QString)),
+            this,       SLOT(handleParticipantLeft(QString)));
+}
+
+QStringList QmlBridge::getPeers() const {
+    return m_peers;
+}
+
+QStringList QmlBridge::getLsbImagePaths() const {
+    return m_lsbImagePaths;
+}
+
+QStringList QmlBridge::getLsbImageDates() const {
+    return m_lsbImageDates;
+}
+
+QStringList QmlBridge::getLsbImageAuthors() const {
+    return m_lsbImageAuthors;
+}
+
+QString QmlBridge::getUserName() const {
+    return m_comms.username();
+}
+
+QString QmlBridge::getLsbImagesDirectory() const {
+    return "";
+}
+
+void QmlBridge::init() {
+    newParticipant(getUserName());
+}
+
+void QmlBridge::sendFile() {
+
+}
+
+
+void QmlBridge::updateLsbImageDb() {
+
+}
+
+void QmlBridge::openLsbImagesDirectory() {
+
+}
+
+void QmlBridge::sendMessage(const QString& text) {
+    if (text.isEmpty())
+        return;
+
+    emit newMessage(getUserName(), text);
+}
+
+void QmlBridge::setPassword(const QString& password) {
+}
+
+void QmlBridge::openMessage(const QString& filePath, const QString& password) {
+    if (filePath.isEmpty())
+        return;
+}
+
+void QmlBridge::handleNewParticipant(const QString& name) {
+    if (!getPeers().contains(name)) {
+        m_peers.append(name);
+        emit peerCountChanged();
+    }
+}
+
+void QmlBridge::handleParticipantLeft(const QString& name) {
+    if (getPeers().contains(name)) {
+        m_peers.removeAt(m_peers.indexOf(name));
+        emit peerCountChanged();
+    }
+}
+
+void QmlBridge::handleMessages(const QString& name, const QByteArray& data) {
+    if (data.isEmpty())
+        return;
+}
