@@ -25,10 +25,11 @@
 
 #include <QByteArray>
 
-class Crypto {
+class Crypto
+{
 public:
-    static QByteArray encryptData(const QByteArray& data, const QByteArray &key, bool* error);
-    static QByteArray decryptData(const QByteArray& data, const QByteArray &key, bool* error);
+    static QByteArray encryptData (const QByteArray& data, const QByteArray& key, bool* error);
+    static QByteArray decryptData (const QByteArray& data, const QByteArray& key, bool* error);
 };
 
 #endif

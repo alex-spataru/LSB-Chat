@@ -27,11 +27,12 @@
 #include <QUdpSocket>
 #include <QHostAddress>
 
-class Discovery : public QObject {
+class Discovery : public QObject
+{
     Q_OBJECT
 
 signals:
-    void newClient(const QHostAddress &address, const quint16 port);
+    void newClient (const QHostAddress& address, const quint16 port);
 
 public:
     explicit Discovery();

@@ -36,18 +36,19 @@ static const quint32 BROADCAST_INTERVAL = 2000;
  *
  * Gets user name from the operating system and starts the UDP broadcast loop
  */
-P2P_Manager::P2P_Manager(NetworkComms* comms) : QObject(comms) {
+P2P_Manager::P2P_Manager (NetworkComms* comms) : QObject (comms)
+{
     // Assign client pointer
     m_client = comms;
 
     // Create list of environmental variables
-    static const char *envVariables[] = {
+    static const char* envVariables[] = {
         "USERNAME", "USER", "USERDOMAIN", "HOSTNAME", "DOMAINNAME"
     };
 
     // Try to get user name from env. variables
-    for (const char *varname : envVariables) {
-        m_username = qEnvironmentVariable(varname);
+    for (const char* varname : envVariables) {
+        m_username = qEnvironmentVariable (varname);
         if (!m_username.isEmpty())
             break;
     }
@@ -57,23 +58,23 @@ P2P_Manager::P2P_Manager(NetworkComms* comms) : QObject(comms) {
         m_username = "unknown";
 
     // Set server port & update address configuration
-    setServerPort(0);
+    setServerPort (0);
     updateAddresses();
 
     // Configure socket for UDP broadcast
-    m_broadcastSocket.bind(QHostAddress::Any,
-                           BROADCAST_PORT,
-                           QUdpSocket::ShareAddress |
-                           QUdpSocket::ReuseAddressHint);
+    m_broadcastSocket.bind (QHostAddress::Any,
+                            BROADCAST_PORT,
+                            QUdpSocket::ShareAddress |
+                            QUdpSocket::ReuseAddressHint);
 
     // Configure signals/slots
-    connect(&m_broadcastSocket, SIGNAL(readyRead()),
-            this,                 SLOT(readBroadcastDatagram()));
-    connect(&m_broadcastTimer,  SIGNAL(timeout()),
-            this,                 SLOT(sendBroadcastDatagram()));
+    connect (&m_broadcastSocket, SIGNAL (readyRead()),
+             this,                 SLOT (readBroadcastDatagram()));
+    connect (&m_broadcastTimer,  SIGNAL (timeout()),
+             this,                 SLOT (sendBroadcastDatagram()));
 
     // Start broadcasting loop
-    m_broadcastTimer.setInterval(BROADCAST_INTERVAL);
+    m_broadcastTimer.setInterval (BROADCAST_INTERVAL);
 }
 
 /**
@@ -82,7 +83,8 @@ P2P_Manager::P2P_Manager(NetworkComms* comms) : QObject(comms) {
  *
  * Returns user name obtained from the operating system
  */
-QString P2P_Manager::userName() const {
+QString P2P_Manager::userName() const
+{
     return m_username;
 }
 
@@ -92,7 +94,8 @@ QString P2P_Manager::userName() const {
  * Starts the UDP broadcast timer, which allows the program to send a periodic broadcast
  * over all available network interfaces.
  */
-void P2P_Manager::startBroadcasting() {
+void P2P_Manager::startBroadcasting()
+{
     m_broadcastTimer.start();
 }
 
@@ -104,7 +107,8 @@ void P2P_Manager::startBroadcasting() {
  * of the application in the LAN can know in which port shall they try to connect with the
  * local computer.
  */
-void P2P_Manager::setServerPort(const quint16 port) {
+void P2P_Manager::setServerPort (const quint16 port)
+{
     m_serverPort = port;
 }
 
@@ -115,9 +119,10 @@ void P2P_Manager::setServerPort(const quint16 port) {
  *
  * Returns @c true if the given @a address is equal to the address of the client computer
  */
-bool P2P_Manager::isLocalHostAddress(const QHostAddress& address) {
+bool P2P_Manager::isLocalHostAddress (const QHostAddress& address)
+{
     foreach (QHostAddress localAddress, m_ipAddresses) {
-        if (address.isEqual(localAddress))
+        if (address.isEqual (localAddress))
             return true;
     }
 
@@ -130,21 +135,22 @@ bool P2P_Manager::isLocalHostAddress(const QHostAddress& address) {
  * Writes an UDP broadcast packet with the user name and TCP server port over all available
  * network interfaces.
  */
-void P2P_Manager::sendBroadcastDatagram() {
+void P2P_Manager::sendBroadcastDatagram()
+{
     // Create UDP datagram
     QByteArray datagram;
     {
-        QCborStreamWriter writer(&datagram);
-        writer.startArray(2);
-        writer.append(m_username);
-        writer.append(m_serverPort);
+        QCborStreamWriter writer (&datagram);
+        writer.startArray (2);
+        writer.append (m_username);
+        writer.append (m_serverPort);
         writer.endArray();
     }
 
     // Send UDP packet to all possible broadcast adresses
     bool validBroadcastAddresses = true;
     foreach (QHostAddress address, m_broadcastAddresses) {
-        if (m_broadcastSocket.writeDatagram(datagram, address, BROADCAST_PORT) == -1)
+        if (m_broadcastSocket.writeDatagram (datagram, address, BROADCAST_PORT) == -1)
             validBroadcastAddresses = false;
     }
 
@@ -159,7 +165,8 @@ void P2P_Manager::sendBroadcastDatagram() {
  * Reads and processes all incoming UDP broadcast datagrams. If the datagram comes from
  * another computer and is valid, a new TCP connection is established with that computer.
  */
-void P2P_Manager::readBroadcastDatagram() {
+void P2P_Manager::readBroadcastDatagram()
+{
     // Attend each individual datagram
     while (m_broadcastSocket.hasPendingDatagrams()) {
         // Init. variables
@@ -169,20 +176,20 @@ void P2P_Manager::readBroadcastDatagram() {
         qint64 senderServerPort;
 
         // Resize byte array to fit incoming data size
-        datagram.resize(m_broadcastSocket.pendingDatagramSize());
+        datagram.resize (m_broadcastSocket.pendingDatagramSize());
 
         // Try to read data
-        qint64 res = m_broadcastSocket.readDatagram(datagram.data(),
-                                                    datagram.size(),
-                                                    &senderIp,
-                                                    &senderPort);
+        qint64 res = m_broadcastSocket.readDatagram (datagram.data(),
+                                                     datagram.size(),
+                                                     &senderIp,
+                                                     &senderPort);
 
         // Data reading error
         if (res == -1)
             continue;
 
         // decode the datagram
-        QCborStreamReader reader(datagram);
+        QCborStreamReader reader (datagram);
         if (reader.lastError() != QCborError::NoError || !reader.isArray())
             continue;
         if (!reader.isLengthKnown() || reader.length() != 2)
@@ -203,17 +210,17 @@ void P2P_Manager::readBroadcastDatagram() {
         senderServerPort = reader.toInteger();
 
         // Do not autoconnect to ourselves
-        if (isLocalHostAddress(senderIp) && senderServerPort == m_serverPort)
+        if (isLocalHostAddress (senderIp) && senderServerPort == m_serverPort)
             continue;
 
         // Register new connection with client
-        if (!m_client->hasConnection(senderIp)) {
+        if (!m_client->hasConnection (senderIp)) {
             // Create new connection
-            P2P_Connection* connection = new P2P_Connection(this);
-            emit newConnection(connection);
+            P2P_Connection* connection = new P2P_Connection (this);
+            emit newConnection (connection);
 
             // Connect the connection to the target host
-            connection->connectToHost(senderIp, senderServerPort);
+            connection->connectToHost (senderIp, senderServerPort);
         }
     }
 }
@@ -223,7 +230,8 @@ void P2P_Manager::readBroadcastDatagram() {
  *
  * Updates the broadcast address list to match the current hardware and network configuration
  */
-void P2P_Manager::updateAddresses() {
+void P2P_Manager::updateAddresses()
+{
     // Clear address list
     m_ipAddresses.clear();
     m_broadcastAddresses.clear();
@@ -239,7 +247,7 @@ void P2P_Manager::updateAddresses() {
 
             // Register address if its valid and is not the local host
             if (broadcastAddress != QHostAddress::Null &&
-                    entry.ip() != QHostAddress::LocalHost) {
+                entry.ip() != QHostAddress::LocalHost) {
                 m_broadcastAddresses << broadcastAddress;
                 m_ipAddresses << entry.ip();
             }

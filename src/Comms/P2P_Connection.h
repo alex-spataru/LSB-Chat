@@ -32,12 +32,13 @@
 #include <QCborStreamReader>
 #include <QCborStreamWriter>
 
-class P2P_Connection : public QTcpSocket {
+class P2P_Connection : public QTcpSocket
+{
     Q_OBJECT
 
 signals:
     void readyForUse();
-    void newMessage(const QString& from, const QByteArray& message);
+    void newMessage (const QString& from, const QByteArray& message);
 
 public:
     enum ConnectionState {
@@ -54,16 +55,16 @@ public:
         Undefined
     };
 
-    P2P_Connection(QObject* parent = Q_NULLPTR);
-    P2P_Connection(qintptr socketDescriptor, QObject* parent = Q_NULLPTR);
+    P2P_Connection (QObject* parent = Q_NULLPTR);
+    P2P_Connection (qintptr socketDescriptor, QObject* parent = Q_NULLPTR);
     ~P2P_Connection() override;
 
     QString name();
-    void setGreetingMessage(const QString& message);
-    bool sendBinaryData(const QByteArray& data);
+    void setGreetingMessage (const QString& message);
+    bool sendBinaryData (const QByteArray& data);
 
 protected:
-    void timerEvent(QTimerEvent* event) override;
+    void timerEvent (QTimerEvent* event) override;
 
 private slots:
     void processReadyRead();

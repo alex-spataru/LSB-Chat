@@ -33,19 +33,20 @@ class Discovery;
 class NetworkComms;
 class P2P_Connection;
 
-class P2P_Manager : public QObject {
+class P2P_Manager : public QObject
+{
     Q_OBJECT
 
 public:
-    P2P_Manager(NetworkComms* comms);
+    P2P_Manager (NetworkComms* comms);
 
     QString userName() const;
     void startBroadcasting();
-    void setServerPort(const quint16 port);
-    bool isLocalHostAddress(const QHostAddress& address);
+    void setServerPort (const quint16 port);
+    bool isLocalHostAddress (const QHostAddress& address);
 
 signals:
-    void newConnection(P2P_Connection* connection);
+    void newConnection (P2P_Connection* connection);
 
 private slots:
     void sendBroadcastDatagram();

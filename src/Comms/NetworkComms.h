@@ -30,27 +30,28 @@
 #include "TCP_Listener.h"
 
 class P2P_Manager;
-class NetworkComms : public QObject {
+class NetworkComms : public QObject
+{
     Q_OBJECT
 
 signals:
-    void newParticipant(const QString& username);
-    void participantLeft(const QString& username);
-    void newMessage(const QString& from, const QByteArray& data);
+    void newParticipant (const QString& username);
+    void participantLeft (const QString& username);
+    void newMessage (const QString& from, const QByteArray& data);
 
 public:
     NetworkComms();
 
     QString username() const;
-    void sendBinaryData(const QByteArray& data);
-    bool hasConnection(const QHostAddress &senderIp, int senderPort = -1) const;
+    void sendBinaryData (const QByteArray& data);
+    bool hasConnection (const QHostAddress& senderIp, int senderPort = -1) const;
 
 private slots:
     void readyForUse();
     void disconnected();
-    void newConnection(P2P_Connection* connection);
-    void removeConnection(P2P_Connection* connection);
-    void connectionError(QAbstractSocket::SocketError error);
+    void newConnection (P2P_Connection* connection);
+    void removeConnection (P2P_Connection* connection);
+    void connectionError (QAbstractSocket::SocketError error);
 
 private:
     P2P_Manager* m_manager;

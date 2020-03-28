@@ -29,8 +29,9 @@
  *
  * Configure the TCP server to listen for connections from any address
  */
-TCP_Listener::TCP_Listener(QObject *parent) : QTcpServer(parent) {
-    listen(QHostAddress::Any);
+TCP_Listener::TCP_Listener (QObject* parent) : QTcpServer (parent)
+{
+    listen (QHostAddress::Any);
 }
 
 /**
@@ -39,7 +40,8 @@ TCP_Listener::TCP_Listener(QObject *parent) : QTcpServer(parent) {
  *
  * Respond to a connection request by establishing a new TCP connection with the petitioner
  */
-void TCP_Listener::incomingConnection(qintptr socketDescriptor) {
-    P2P_Connection* connection = new P2P_Connection(socketDescriptor, this);
-    emit newConnection(connection);
+void TCP_Listener::incomingConnection (qintptr socketDescriptor)
+{
+    P2P_Connection* connection = new P2P_Connection (socketDescriptor, this);
+    emit newConnection (connection);
 }
