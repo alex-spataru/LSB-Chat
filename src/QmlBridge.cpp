@@ -22,58 +22,79 @@
 
 #include "QmlBridge.h"
 
+#include <QDir>
+#include <QFileDialog>
+
 QmlBridge::QmlBridge()
 {
-    connect (&m_comms, SIGNAL (newParticipant (QString)),
-             this,     SIGNAL (newParticipant (QString)));
-    connect (&m_comms, SIGNAL (participantLeft (QString)),
-             this,     SIGNAL (participantLeft (QString)));
-    connect (&m_comms, SIGNAL (newMessage (QString, QByteArray)),
-             this,       SLOT (handleMessages (QString, QByteArray)));
-    connect (this,     SIGNAL (newParticipant (QString)),
-             this,       SLOT (handleNewParticipant (QString)));
-    connect (this,     SIGNAL (participantLeft (QString)),
-             this,       SLOT (handleParticipantLeft (QString)));
+   connect(&m_comms, SIGNAL(newParticipant(QString)),
+           this,     SIGNAL(newParticipant(QString)));
+   connect(&m_comms, SIGNAL(participantLeft(QString)),
+           this,     SIGNAL(participantLeft(QString)));
+   connect(&m_comms, SIGNAL(newMessage(QString, QByteArray)),
+           this,       SLOT(handleMessages(QString, QByteArray)));
+   connect(this,     SIGNAL(newParticipant(QString)),
+           this,       SLOT(handleNewParticipant(QString)));
+   connect(this,     SIGNAL(participantLeft(QString)),
+           this,       SLOT(handleParticipantLeft(QString)));
 }
 
 QStringList QmlBridge::getPeers() const
 {
-    return m_peers;
+   return m_peers;
+}
+
+QStringList QmlBridge::getSortTypes() const
+{
+   QStringList list = {
+      tr("Newest First"),
+      tr("Oldest First"),
+      tr("Author Name"),
+      tr("Image Size")
+   };
+
+   return list;
 }
 
 QStringList QmlBridge::getLsbImagePaths() const
 {
-    return m_lsbImagePaths;
+   return m_lsbImagePaths;
 }
 
 QStringList QmlBridge::getLsbImageDates() const
 {
-    return m_lsbImageDates;
+   return m_lsbImageDates;
 }
 
 QStringList QmlBridge::getLsbImageAuthors() const
 {
-    return m_lsbImageAuthors;
+   return m_lsbImageAuthors;
 }
 
 QString QmlBridge::getUserName() const
 {
-    return m_comms.username();
+   return m_comms.username();
 }
 
 QString QmlBridge::getLsbImagesDirectory() const
 {
-    return "";
+   return "";
 }
 
 void QmlBridge::init()
 {
-    newParticipant (getUserName());
+   newParticipant(getUserName());
 }
 
 void QmlBridge::sendFile()
 {
+   const QString path = QFileDialog::getOpenFileName(Q_NULLPTR,
+                                                     tr("Choose file to share"),
+                                                     QDir::homePath());
 
+   if(!path.isEmpty()) {
+
+   }
 }
 
 
@@ -87,42 +108,53 @@ void QmlBridge::openLsbImagesDirectory()
 
 }
 
-void QmlBridge::sendMessage (const QString& text)
+void QmlBridge::changeSortType(const int type)
 {
-    if (text.isEmpty())
-        return;
 
-    emit newMessage (getUserName(), text);
 }
 
-void QmlBridge::setPassword (const QString& password)
+void QmlBridge::sendMessage(const QString& text)
 {
+   if(text.isEmpty())
+      return;
+
+   emit newMessage(getUserName(), text);
 }
 
-void QmlBridge::openMessage (const QString& filePath, const QString& password)
+void QmlBridge::setPassword(const QString& password)
 {
-    if (filePath.isEmpty())
-        return;
+
 }
 
-void QmlBridge::handleNewParticipant (const QString& name)
+void QmlBridge::setLsbSearchQuery(const QString& query)
 {
-    if (!getPeers().contains (name)) {
-        m_peers.append (name);
-        emit peerCountChanged();
-    }
+
 }
 
-void QmlBridge::handleParticipantLeft (const QString& name)
+void QmlBridge::openMessage(const QString& filePath, const QString& password)
 {
-    if (getPeers().contains (name)) {
-        m_peers.removeAt (m_peers.indexOf (name));
-        emit peerCountChanged();
-    }
+   if(filePath.isEmpty())
+      return;
 }
 
-void QmlBridge::handleMessages (const QString& name, const QByteArray& data)
+void QmlBridge::handleNewParticipant(const QString& name)
 {
-    if (data.isEmpty())
-        return;
+   if(!getPeers().contains(name)) {
+      m_peers.append(name);
+      emit peerCountChanged();
+   }
+}
+
+void QmlBridge::handleParticipantLeft(const QString& name)
+{
+   if(getPeers().contains(name)) {
+      m_peers.removeAt(m_peers.indexOf(name));
+      emit peerCountChanged();
+   }
+}
+
+void QmlBridge::handleMessages(const QString& name, const QByteArray& data)
+{
+   if(data.isEmpty())
+      return;
 }

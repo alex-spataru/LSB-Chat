@@ -50,35 +50,35 @@ static const int TRANSFER_TIMEOUT = 30 * 1000;
  * Initializes the CBOR writter, configures the signals/slots and initializes all internal
  * variables of the class.
  */
-P2P_Connection::P2P_Connection (QObject* parent) : QTcpSocket (parent), m_writer (this)
+P2P_Connection::P2P_Connection(QObject* parent) : QTcpSocket(parent), m_writer(this)
 {
-    // Initialize internal variables
-    m_username = "Unknown";
-    m_transferTimerId = -1;
-    m_currentDataType = Undefined;
-    m_greetingMessageSent = false;
-    m_greetingMessage = "Undefined";
-    m_connectionState = WaitingForGreeting;
+   // Initialize internal variables
+   m_username = "Unknown";
+   m_transferTimerId = -1;
+   m_currentDataType = Undefined;
+   m_greetingMessageSent = false;
+   m_greetingMessage = "Undefined";
+   m_connectionState = WaitingForGreeting;
 
-    // Set ping timer interval
-    m_pingTimer.setInterval (PING_INTERVAL);
+   // Set ping timer interval
+   m_pingTimer.setInterval(PING_INTERVAL);
 
-    // Configure signals/slots
-    QObject::connect (this,         SIGNAL (readyRead()),
-                      this,         SLOT   (processReadyRead()));
-    QObject::connect (this,         SIGNAL (disconnected()),
-                      &m_pingTimer, SLOT   (stop()));
-    QObject::connect (&m_pingTimer, SIGNAL (timeout()),
-                      this,         SLOT   (sendPing()));
-    QObject::connect (this,         SIGNAL (connected()),
-                      this,         SLOT   (sendGreetingMessage()));
+   // Configure signals/slots
+   QObject::connect(this,         SIGNAL(readyRead()),
+                    this,         SLOT(processReadyRead()));
+   QObject::connect(this,         SIGNAL(disconnected()),
+                    &m_pingTimer, SLOT(stop()));
+   QObject::connect(&m_pingTimer, SIGNAL(timeout()),
+                    this,         SLOT(sendPing()));
+   QObject::connect(this,         SIGNAL(connected()),
+                    this,         SLOT(sendGreetingMessage()));
 }
 
-P2P_Connection::P2P_Connection (qintptr socketDescriptor,
-                                QObject* parent) : P2P_Connection (parent)
+P2P_Connection::P2P_Connection(qintptr socketDescriptor,
+                               QObject* parent) : P2P_Connection(parent)
 {
-    setSocketDescriptor (socketDescriptor);
-    m_reader.setDevice (this);
+   setSocketDescriptor(socketDescriptor);
+   m_reader.setDevice(this);
 }
 
 /**
@@ -88,10 +88,10 @@ P2P_Connection::P2P_Connection (qintptr socketDescriptor,
  */
 P2P_Connection::~P2P_Connection()
 {
-    if (m_greetingMessageSent) {
-        m_writer.endArray();
-        waitForBytesWritten (2000);
-    }
+   if(m_greetingMessageSent) {
+      m_writer.endArray();
+      waitForBytesWritten(2000);
+   }
 }
 
 /**
@@ -102,7 +102,7 @@ P2P_Connection::~P2P_Connection()
  */
 QString P2P_Connection::name()
 {
-    return m_username;
+   return m_username;
 }
 
 /**
@@ -112,9 +112,9 @@ QString P2P_Connection::name()
  * Changes the greeting message to be sent to the peer. Ideally, the greeting message should
  * be the user name of the local client.
  */
-void P2P_Connection::setGreetingMessage (const QString& message)
+void P2P_Connection::setGreetingMessage(const QString& message)
 {
-    m_greetingMessage = message;
+   m_greetingMessage = message;
 }
 
 /**
@@ -124,20 +124,20 @@ void P2P_Connection::setGreetingMessage (const QString& message)
  *
  * Sends the given binary @a data to the peer
  */
-bool P2P_Connection::sendBinaryData (const QByteArray& data)
+bool P2P_Connection::sendBinaryData(const QByteArray& data)
 {
-    // Data is empty, abort
-    if (data.isEmpty())
-        return false;
+   // Data is empty, abort
+   if(data.isEmpty())
+      return false;
 
-    // Send data packet through CBOR stream
-    m_writer.startMap (1);          // Start new message
-    m_writer.append (BinaryData);   // Set message type
-    m_writer.append (data);         // Append data payload
-    m_writer.endMap();              // End message
+   // Send data packet through CBOR stream
+   m_writer.startMap(1);           // Start new message
+   m_writer.append(BinaryData);    // Set message type
+   m_writer.append(data);          // Append data payload
+   m_writer.endMap();              // End message
 
-    // Return success state
-    return true;
+   // Return success state
+   return true;
 }
 
 /**
@@ -147,13 +147,13 @@ bool P2P_Connection::sendBinaryData (const QByteArray& data)
  * If the data transfer timer expires, abort the connection to avoid buffer overload and/or
  * loss of information.
  */
-void P2P_Connection::timerEvent (QTimerEvent* event)
+void P2P_Connection::timerEvent(QTimerEvent* event)
 {
-    if (event->timerId() == m_transferTimerId) {
-        abort();
-        killTimer (m_transferTimerId);
-        m_transferTimerId = -1;
-    }
+   if(event->timerId() == m_transferTimerId) {
+      abort();
+      killTimer(m_transferTimerId);
+      m_transferTimerId = -1;
+   }
 }
 
 /**
@@ -163,93 +163,93 @@ void P2P_Connection::timerEvent (QTimerEvent* event)
  */
 void P2P_Connection::processReadyRead()
 {
-    // We've got more data, reparse
-    m_reader.reparse();
+   // We've got more data, reparse
+   m_reader.reparse();
 
-    // Parse incoming data
-    while (m_reader.lastError() == QCborError::NoError) {
-        // Case a) We are waiting for greeting
-        if (m_connectionState == WaitingForGreeting) {
-            // Protocol error
-            if (!m_reader.isArray())
-                break;
+   // Parse incoming data
+   while(m_reader.lastError() == QCborError::NoError) {
+      // Case a) We are waiting for greeting
+      if(m_connectionState == WaitingForGreeting) {
+         // Protocol error
+         if(!m_reader.isArray())
+            break;
 
-            // Start main data array and change state
-            m_reader.enterContainer();
-            m_connectionState = ReadingGreeting;
-        }
+         // Start main data array and change state
+         m_reader.enterContainer();
+         m_connectionState = ReadingGreeting;
+      }
 
-        // Check if the container array is valid
-        else if (m_reader.containerDepth() == 1) {
-            if (!m_reader.hasNext()) {
-                m_reader.leaveContainer();
-                disconnectFromHost();
-                return;
-            }
-
-            if (!m_reader.isMap() || !m_reader.isLengthKnown() || m_reader.length() != 1)
-                break;
-
-            m_reader.enterContainer();
-        }
-
-        // Current data type is undefined, wait a little
-        else if (m_currentDataType == Undefined) {
-            if (!m_reader.isInteger())
-                break;
-
-            m_currentDataType = DataType (m_reader.toInteger());
-            m_reader.next();
-        }
-
-
-        // Current data type is defined
-        else {
-            // Check if the CBOR has data inside the payload,
-            // if so, add data to temp. buffer
-            if (m_reader.isByteArray()) {
-                auto r = m_reader.readByteArray();
-                m_buffer += r.data;
-                if (r.status != QCborStreamReader::EndOfString)
-                    continue;
-            }
-
-            // Ping/Pong packet
-            else if (m_reader.isNull())
-                m_reader.next();
-
-            // Protocol error
-            else
-                break;
-
-            // Reset transfer timer watchdog
+      // Check if the container array is valid
+      else if(m_reader.containerDepth() == 1) {
+         if(!m_reader.hasNext()) {
             m_reader.leaveContainer();
-            if (m_transferTimerId != -1) {
-                killTimer (m_transferTimerId);
-                m_transferTimerId = -1;
-            }
+            disconnectFromHost();
+            return;
+         }
 
-            // Process the greeting
-            if (m_connectionState == ReadingGreeting) {
-                if (m_currentDataType != Greeting)
-                    break;
+         if(!m_reader.isMap() || !m_reader.isLengthKnown() || m_reader.length() != 1)
+            break;
 
-                processGreeting();
-            }
+         m_reader.enterContainer();
+      }
 
-            // Process other non-greeting packets
-            else
-                processData();
-        }
-    }
+      // Current data type is undefined, wait a little
+      else if(m_currentDataType == Undefined) {
+         if(!m_reader.isInteger())
+            break;
 
-    // Abort connection if there was a parsing error
-    if (m_reader.lastError() != QCborError::EndOfFile)
-        abort();
+         m_currentDataType = DataType(m_reader.toInteger());
+         m_reader.next();
+      }
 
-    // Start the transfer timer to avoid lingering connections
-    if (m_transferTimerId != -1 && m_reader.containerDepth() > 1)
-        m_transferTimerId = startTimer (TRANSFER_TIMEOUT);
+
+      // Current data type is defined
+      else {
+         // Check if the CBOR has data inside the payload,
+         // if so, add data to temp. buffer
+         if(m_reader.isByteArray()) {
+            auto r = m_reader.readByteArray();
+            m_buffer += r.data;
+            if(r.status != QCborStreamReader::EndOfString)
+               continue;
+         }
+
+         // Ping/Pong packet
+         else if(m_reader.isNull())
+            m_reader.next();
+
+         // Protocol error
+         else
+            break;
+
+         // Reset transfer timer watchdog
+         m_reader.leaveContainer();
+         if(m_transferTimerId != -1) {
+            killTimer(m_transferTimerId);
+            m_transferTimerId = -1;
+         }
+
+         // Process the greeting
+         if(m_connectionState == ReadingGreeting) {
+            if(m_currentDataType != Greeting)
+               break;
+
+            processGreeting();
+         }
+
+         // Process other non-greeting packets
+         else
+            processData();
+      }
+   }
+
+   // Abort connection if there was a parsing error
+   if(m_reader.lastError() != QCborError::EndOfFile)
+      abort();
+
+   // Start the transfer timer to avoid lingering connections
+   if(m_transferTimerId != -1 && m_reader.containerDepth() > 1)
+      m_transferTimerId = startTimer(TRANSFER_TIMEOUT);
 }
 
 /**
@@ -259,17 +259,17 @@ void P2P_Connection::processReadyRead()
  */
 void P2P_Connection::sendPing()
 {
-    // Peer response time is longer than the timeout, cancel connection
-    if (m_pongTimer.elapsed() > PONG_TIMEOUT) {
-        abort();
-        return;
-    }
+   // Peer response time is longer than the timeout, cancel connection
+   if(m_pongTimer.elapsed() > PONG_TIMEOUT) {
+      abort();
+      return;
+   }
 
-    // Send ping packet through CBOR stream
-    m_writer.startMap (1);      // Start new message
-    m_writer.append (Ping);     // Set message type
-    m_writer.append (nullptr);  // NULL data payload
-    m_writer.endMap();          // End message
+   // Send ping packet through CBOR stream
+   m_writer.startMap(1);       // Start new message
+   m_writer.append(Ping);      // Set message type
+   m_writer.append(nullptr);   // NULL data payload
+   m_writer.endMap();          // End message
 }
 
 /**
@@ -279,21 +279,21 @@ void P2P_Connection::sendPing()
  */
 void P2P_Connection::sendGreetingMessage()
 {
-    // Start new CBOR array
-    m_writer.startArray();
+   // Start new CBOR array
+   m_writer.startArray();
 
-    // Send greeting packet through CBOR stream
-    m_writer.startMap (1);                       // Start new message
-    m_writer.append (Greeting);                  // Set message type
-    m_writer.append (m_greetingMessage.toUtf8()); // Append greeting message
-    m_writer.endMap();                           // End message
+   // Send greeting packet through CBOR stream
+   m_writer.startMap(1);                        // Start new message
+   m_writer.append(Greeting);                   // Set message type
+   m_writer.append(m_greetingMessage.toUtf8());  // Append greeting message
+   m_writer.endMap();                           // End message
 
-    // Only send the greeting message once
-    m_greetingMessageSent = true;
+   // Only send the greeting message once
+   m_greetingMessageSent = true;
 
-    // Configure the CBOR reader if it is not already configured
-    if (!m_reader.device())
-        m_reader.setDevice (this);
+   // Configure the CBOR reader if it is not already configured
+   if(!m_reader.device())
+      m_reader.setDevice(this);
 }
 
 /**
@@ -304,25 +304,25 @@ void P2P_Connection::sendGreetingMessage()
  */
 void P2P_Connection::processData()
 {
-    // Binary data message received, emit new signal and let the program process the data
-    if (m_currentDataType == BinaryData)
-        emit newMessage (m_username, m_buffer);
+   // Binary data message received, emit new signal and let the program process the data
+   if(m_currentDataType == BinaryData)
+      emit newMessage(m_username, m_buffer);
 
-    // Respond to ping packet with a pong packet
-    else if (m_currentDataType == Ping) {
-        m_writer.startMap (1);
-        m_writer.append (Pong);
-        m_writer.append (nullptr);
-        m_writer.endMap();
-    }
+   // Respond to ping packet with a pong packet
+   else if(m_currentDataType == Ping) {
+      m_writer.startMap(1);
+      m_writer.append(Pong);
+      m_writer.append(nullptr);
+      m_writer.endMap();
+   }
 
-    // If we receive pong packet, we know that the peer is still there, reset watchdog timer
-    else if (m_currentDataType == Pong)
-        m_pongTimer.restart();
+   // If we receive pong packet, we know that the peer is still there, reset watchdog timer
+   else if(m_currentDataType == Pong)
+      m_pongTimer.restart();
 
-    // Clear current data type flag and clear buffer
-    m_currentDataType = Undefined;
-    m_buffer.clear();
+   // Clear current data type flag and clear buffer
+   m_currentDataType = Undefined;
+   m_buffer.clear();
 }
 
 /**
@@ -333,31 +333,31 @@ void P2P_Connection::processData()
  */
 void P2P_Connection::processGreeting()
 {
-    // Construct user name from buffer and peer's IPv4 address
-    QString ipv4 = QHostAddress (peerAddress().toIPv4Address()).toString();
-    m_username = QString::fromUtf8 (m_buffer) + "@" + ipv4;
+   // Construct user name from buffer and peer's IPv4 address
+   QString ipv4 = QHostAddress(peerAddress().toIPv4Address()).toString();
+   m_username = QString::fromUtf8(m_buffer) + "@" + ipv4;
 
-    // Reset current data type and buffer
-    m_currentDataType = Undefined;
-    m_buffer.clear();
+   // Reset current data type and buffer
+   m_currentDataType = Undefined;
+   m_buffer.clear();
 
-    // Abort connection if it's not valid
-    if (!isValid()) {
-        abort();
-        return;
-    }
+   // Abort connection if it's not valid
+   if(!isValid()) {
+      abort();
+      return;
+   }
 
-    // Send greeting message if necessary
-    if (!m_greetingMessageSent)
-        sendGreetingMessage();
+   // Send greeting message if necessary
+   if(!m_greetingMessageSent)
+      sendGreetingMessage();
 
-    // Start the ping/pong process
-    m_pingTimer.start();
-    m_pongTimer.start();
+   // Start the ping/pong process
+   m_pingTimer.start();
+   m_pongTimer.start();
 
-    // Change the connection state
-    m_connectionState = ReadyForUse;
+   // Change the connection state
+   m_connectionState = ReadyForUse;
 
-    // Notify the rest of the program
-    emit readyForUse();
+   // Notify the rest of the program
+   emit readyForUse();
 }

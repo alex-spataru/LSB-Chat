@@ -33,6 +33,7 @@ RowLayout {
     signal attachClicked()
     signal settingsClicked()
     signal messageSent(var message)
+    signal cryptoClicked(var enabled)
 
     //
     // Clear message text field when a message is sent
@@ -46,6 +47,17 @@ RowLayout {
         onClicked: settingsClicked()
         Layout.alignment: Qt.AlignVCenter
         icon.source: "qrc:/icons/settings-24px.svg"
+    }
+
+    //
+    // Crypto button
+    //
+    Button {
+        checkable: true
+        Layout.alignment: Qt.AlignVCenter
+        onCheckedChanged: cryptoClicked(checked)
+        icon.source: checked ? "qrc:/icons/enhanced_encryption-24px.svg" :
+                               "qrc:/icons/no_encryption-24px.svg"
     }
 
     //

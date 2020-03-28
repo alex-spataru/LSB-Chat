@@ -28,29 +28,29 @@
 #include "AppInfo.h"
 #include "QmlBridge.h"
 
-int main (int argc, char** argv)
+int main(int argc, char** argv)
 {
-    QApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
+   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
-    QApplication app (argc, argv);
-    app.setApplicationName (APP_NAME);
-    app.setApplicationVersion (APP_VERSION);
-    app.setOrganizationName (APP_DEVELOPER);
-    app.setOrganizationDomain (APP_SUPPORT_URL);
+   QApplication app(argc, argv);
+   app.setApplicationName(APP_NAME);
+   app.setApplicationVersion(APP_VERSION);
+   app.setOrganizationName(APP_DEVELOPER);
+   app.setOrganizationDomain(APP_SUPPORT_URL);
 
-    QmlBridge bridge;
-    QQmlApplicationEngine engine;
-    QQuickStyle::setStyle ("Imagine");
-    engine.rootContext()->setContextProperty ("CBridge", &bridge);
-    engine.rootContext()->setContextProperty ("CAppName", app.applicationName());
-    engine.rootContext()->setContextProperty ("CAppVersion", app.applicationVersion());
-    engine.rootContext()->setContextProperty ("CAppOrganization", app.organizationName());
-    engine.rootContext()->setContextProperty ("CAppOrganizationDomain", app.organizationDomain());
-    engine.load (QUrl (QStringLiteral ("qrc:/qml/main.qml")));
+   QmlBridge bridge;
+   QQmlApplicationEngine engine;
+   QQuickStyle::setStyle("Imagine");
+   engine.rootContext()->setContextProperty("CBridge", &bridge);
+   engine.rootContext()->setContextProperty("CAppName", app.applicationName());
+   engine.rootContext()->setContextProperty("CAppVersion", app.applicationVersion());
+   engine.rootContext()->setContextProperty("CAppOrganization", app.organizationName());
+   engine.rootContext()->setContextProperty("CAppOrganizationDomain", app.organizationDomain());
+   engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
 
-    if (engine.rootObjects().isEmpty())
-        return EXIT_FAILURE;
+   if(engine.rootObjects().isEmpty())
+      return EXIT_FAILURE;
 
-    return app.exec();
+   return app.exec();
 }
 

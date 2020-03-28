@@ -39,6 +39,7 @@ ApplicationWindow {
     signal attachClicked()
     signal settingsClicked()
     signal messageSent(var message)
+    signal cryptoClicked(var enabled)
 
     //
     // Window geometry

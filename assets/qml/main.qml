@@ -35,9 +35,10 @@ Item {
     //
     MainWindow {
         id: mainWindow
+        onAttachClicked: CBridge.sendFile()
+        Component.onCompleted: mainWindow.show()
         onMessageSent: CBridge.sendMessage(message)
         onSettingsClicked: preferences.showNormal()
-        Component.onCompleted: mainWindow.show()
     }
 
     //
