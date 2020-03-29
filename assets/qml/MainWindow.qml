@@ -25,6 +25,8 @@ import QtQuick.Window 2.0
 import QtQuick.Layouts 1.0
 import QtQuick.Controls 2.0
 
+import Qt.labs.settings 1.0
+
 import "Widgets" as Widgets
 
 ApplicationWindow {
@@ -36,8 +38,8 @@ ApplicationWindow {
     //
     // Window geometry
     //
-    minimumWidth: 800
-    minimumHeight: 640
+    minimumWidth: 900
+    minimumHeight: 740
 
     //
     // Window title
@@ -45,11 +47,31 @@ ApplicationWindow {
     title: CAppName + " v" + CAppVersion
 
     //
-    // Background rectangle
+    // Save/load settings
     //
-    background: Rectangle {
-        color: "#f4f4f4"
+    Settings {
+        property alias mwX: mw.x
+        property alias mwY: mw.y
+        property alias mwWidth: mw.width
+        property alias mwHeight: mw.height
     }
+
+    //
+    // Set fusion palette
+    //
+    palette.base: "#191919"
+    palette.text: "#ffffff"
+    palette.link: "#2a82da"
+    palette.button: "#353535"
+    palette.window: "#252525"
+    palette.highlight: "#2a82da"
+    palette.buttonText: "#ffffff"
+    palette.brightText: "#ff0000"
+    palette.windowText: "#ffffff"
+    palette.toolTipBase: "#ffffff"
+    palette.toolTipText: "#ffffff"
+    palette.alternateBase: "#353535"
+    palette.highlightedText: "#000000"
 
     //
     // MainWindow Layout

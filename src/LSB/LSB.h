@@ -36,6 +36,7 @@ class LSB
 
       static QImage currentImageData();
       static QImage currentCompositeImage();
+      static QImage generateImage(const int size, const bool random);
 
       static QImage encodeData(const QByteArray& data);
       static QByteArray decodeData(const QImage& image);

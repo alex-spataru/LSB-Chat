@@ -76,6 +76,7 @@ class QmlBridge : public QObject
       Q_PROPERTY(QString password READ getPassword WRITE setPassword NOTIFY passwordChanged)
       Q_PROPERTY(bool cryptoEnabled READ getCryptoEnabled WRITE setCryptoEnabled NOTIFY
                  cryptoEnabledChanged)
+    Q_PROPERTY(bool generateImages READ getGenerateImagesEnabled WRITE enableGeneratedImages NOTIFY lsbImageSourceChanged)
 
    signals:
       void lsbImageChanged();
@@ -83,7 +84,7 @@ class QmlBridge : public QObject
       void passwordChanged();
       void peerCountChanged();
       void cryptoEnabledChanged();
-      void lsbImageSourcesChanged();
+      void lsbImageSourceChanged();
       void newParticipant(const QString& name);
       void participantLeft(const QString& name);
       void newMessage(const QString& user, const QString& message);
@@ -91,18 +92,18 @@ class QmlBridge : public QObject
    public:
       QmlBridge();
 
-      QStringList getPeers() const;
+      QImage userImage() const;
       QString getUserName() const;
       QString getPassword() const;
+      QStringList getPeers() const;
       bool getCryptoEnabled() const;
-      QStringList availableImages() const;
-      QString getLsbImagesDirectory() const;
+      bool getGenerateImagesEnabled() const;
 
    public slots:
       void init();
       void sendFile();
       void saveImages();
-      void selectLsbImagesSourceDirectory();
+      void selectLsbImageSource();
       void sendMessage(const QString& text);
       void setPassword(const QString& password);
       void setCryptoEnabled(const bool enabled);
@@ -118,6 +119,7 @@ class QmlBridge : public QObject
       QString encodeData(const QByteArray& data, bool* ok, bool* continueSending);
 
    private:
+      QImage m_userImage;
       QString m_password;
       QStringList m_peers;
       bool m_cryptoEnabled;

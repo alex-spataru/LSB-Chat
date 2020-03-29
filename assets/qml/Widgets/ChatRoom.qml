@@ -23,15 +23,36 @@
 import QtQuick 2.0
 import QtQuick.Layouts 1.0
 import QtQuick.Controls 2.2
+import Qt.labs.settings 1.0
 
-Item {
+RowLayout {
     //
     // Let the bridge know that it can begin updating the UI elements
     //
     Component.onCompleted: CBridge.init()
 
+    //
+    // Set spacing between components
+    //
+    spacing: app.spacing
+
+    //
+    // Define sidebar size
+    //
     property int sidebarSize: 346
+
+    //
+    // Set the preview URL to use
+    //
     property string lsbImageUrl: "image://lsb/composite"
+
+    //
+    // Save/load settings
+    //
+    Settings {
+        property alias password: passwordTf.text
+        property alias previewMode: lsbPreviewModeBt.checked
+    }
 
     //
     // React to the events given the the QmlBridge class
@@ -44,42 +65,48 @@ Item {
         //
         onNewMessage: {
             // Blue for every peer
-            var color = "#228"
+            var color = Qt.lighter("#d57d25")
 
             // Red for own user
             if (user === CBridge.userName)
-                color = "#822"
+                color = Qt.lighter(palette.highlight)
 
             // Add user name
             chatView.appendText("<b>" + user + "</b>", color)
 
             // Add message
-            chatView.appendText("&rarr;&nbsp;" + message, "#000")
+            chatView.appendText("&rarr;&nbsp;" + message, "#aaa")
         }
 
         //
         // Participant count changed
         //
-        onNewParticipant: chatView.appendText(qsTr("%1 has joined the chat room").arg(name), "#444")
-        onParticipantLeft: chatView.appendText(qsTr("%1 has left the chat room").arg(name), "#444")
+        onNewParticipant: {
+            chatView.appendText("<i>" + qsTr("%1 has joined the chat room").arg(name) + "</i>",
+                                palette.highlight)
+        }
+
+        onParticipantLeft: {
+            chatView.appendText("<i>" + qsTr("%1 has left the chat room").arg(name) + "</i>",
+                                palette.highlight)
+        }
     }
 
     //
     // Chat display control
     //
-    TextField {
+    GroupBox {
         id: chatroom
-        readOnly: true
+        Layout.fillWidth: true
+        Layout.fillHeight: true
 
         //
-        // Anchor to the left of the screen, and fill width & height
+        // Set background rectangle
         //
-        anchors {
-            top: parent.top
-            left: parent.left
-            right: sidebar.left
-            margins: app.spacing
-            bottom: parent.bottom
+        background: Rectangle {
+            border.width: 1
+            color: palette.base
+            border.color: palette.alternateBase
         }
 
         //
@@ -90,7 +117,6 @@ Item {
             clip: true
             anchors.fill: parent
             contentWidth: chatText.width
-            anchors.margins: app.spacing
             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
             //
@@ -121,276 +147,386 @@ Item {
     //
     // Peer list and controls
     //
-    TextField {
-        id: sidebar
-        readOnly: true
-        width: sidebarSize
+    ColumnLayout {
+        spacing: app.spacing
+        Layout.fillHeight: true
+        Layout.minimumWidth: sidebarSize
+        Layout.maximumWidth: sidebarSize
 
         //
-        // Anchor to the right of the screen and fill height
+        // Peer list
         //
-        anchors {
-            top: parent.top
-            right: parent.right
-            margins: app.spacing
-            bottom: lsbImage.top
+        GroupBox {
+            id: sidebar
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.minimumHeight: 96
+
+            //
+            // Set background rectangle
+            //
+            background: Rectangle {
+                border.width: 1
+                color: palette.base
+                border.color: palette.alternateBase
+            }
+
+            //
+            // Peer ListView
+            //
+            ColumnLayout {
+                spacing: app.spacing
+                anchors.fill: parent
+
+                Label {
+                    font.bold: true
+                    font.pixelSize: 16
+                    text: qsTr("Connected Peers") + ":"
+                }
+
+                ListView {
+                    id: peerList
+                    clip: true
+                    model: CBridge.peers
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    ScrollBar.vertical: ScrollBar {}
+
+                    //
+                    // Define how each individual element of the list should be
+                    //
+                    delegate: RowLayout {
+                        height: 36
+                        spacing: app.spacing / 2
+                        width: sidebarSize - 4 * app.spacing
+                        property color highlightColor: palette.buttonText
+                        Behavior on highlightColor {ColorAnimation{duration: 100}}
+
+                        Connections {
+                            target: CBridge
+                            onNewMessage: {
+                                if (user === modelData) {
+                                    dot.opacity = 1
+
+                                    if (user === CBridge.userName)
+                                        highlightColor = Qt.lighter(palette.highlight)
+                                    else
+                                        highlightColor = Qt.lighter("#d57d25")
+
+                                    timer.start()
+                                }
+
+                                else
+                                    dot.opacity = 0
+                            }
+                        }
+
+                        Timer {
+                            id: timer
+                            interval: 200
+                            onTriggered: highlightColor = palette.buttonText
+                        }
+
+                        RoundButton {
+                            icon.width: 32
+                            icon.height: 32
+                            background: Item {}
+                            icon.color: highlightColor
+                            Layout.alignment: Qt.AlignVCenter
+                            icon.source: "qrc:/icons/account_circle-24px.svg"
+                        }
+
+                        ColumnLayout {
+                            spacing: app.spacing / 4
+                            Layout.alignment: Qt.AlignVCenter
+
+                            Label {
+                                font.bold: true
+                                font.pixelSize: 12
+                                color: highlightColor
+                                width: peerList.width
+                                elide: Label.ElideRight
+                                text: modelData.split("@")[0]
+                            }
+
+                            Label {
+                                font.pixelSize: 10
+                                color: highlightColor
+                                width: peerList.width
+                                elide: Label.ElideRight
+                                text: modelData.split("@")[1]
+                            }
+                        }
+
+                        Item {
+                            Layout.fillWidth: true
+                        }
+
+                        Rectangle {
+                            id: dot
+                            width: 12
+                            height: 12
+                            opacity: 0
+                            color: "#00ff00"
+                            radius: width / 2
+                            Layout.alignment: Qt.AlignVCenter
+                            Behavior on opacity { NumberAnimation{duration: 100}}
+                        }
+                    }
+                }
+            }
         }
 
         //
-        // Peer ListView
+        // LSB image display & controls
         //
-        ListView {
-            //
-            // Generate the model with the data provided by the QML/C++ Bridge
-            //
-            id: peerList
-            model: CBridge.peers
+        GroupBox {
+            id: controls
+            Layout.fillWidth: true
+            Layout.fillHeight: false
 
             //
-            // Set layout
+            // Set background rectangle
             //
-            clip: true
-            anchors.fill: parent
-            anchors.margins: app.spacing
+            background: Rectangle {
+                border.width: 1
+                color: palette.base
+                border.color: palette.alternateBase
+            }
 
-            //
-            // Add a scrollbar
-            //
-            ScrollBar.vertical: ScrollBar {}
+            ColumnLayout {
+                anchors.fill: parent
 
-            //
-            // Define how each individual element of the list should be
-            //
-            delegate: RowLayout {
-                height: 36
-                spacing: app.spacing / 2
-                property color highlightColor: "#000"
-                Behavior on highlightColor {ColorAnimation{duration: 100}}
+                //
+                // Crypto config title
+                //
+                Label {
+                    font.bold: true
+                    font.pixelSize: 16
+                    text: qsTr("Encryption Key") + ":"
+                }
 
-                Connections {
-                    target: CBridge
-                    onNewMessage: {
-                        if (user === modelData) {
-                            if (user === CBridge.userName)
-                                highlightColor = "#a44"
-                            else
-                                highlightColor = "#44a"
+                //
+                // Password controls
+                //
+                RowLayout {
+                    spacing: app.spacing
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
 
-                            timer.start()
+                    TextField {
+                        id: passwordTf
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignVCenter
+                        placeholderText: qsTr("Enter a password") + "..."
+                        echoMode: visibleBt.checked ? TextInput.Normal : TextInput.Password
+
+                        background: Rectangle {
+                            border.width: 1
+                            color: palette.alternateBase
+                            border.color: Qt.lighter(palette.alternateBase)
+                        }
+                    }
+
+                    Button {
+                        id: visibleBt
+                        checkable: true
+                        icon.color: palette.buttonText
+                        Layout.alignment: Qt.AlignVCenter
+                        icon.source: checked ? "qrc:/icons/visibility_off-24px.svg" :
+                                               "qrc:/icons/visibility-24px.svg"
+                    }
+                }
+
+                //
+                // Spacer
+                //
+                Item {
+                    height: app.spacing
+                }
+
+                //
+                // Crypto config title
+                //
+                Label {
+                    font.bold: true
+                    font.pixelSize: 16
+                    text: qsTr("Controls") + ":"
+                }
+
+                //
+                // Buttons
+                //
+                RowLayout {
+                    spacing: app.spacing
+                    Layout.fillWidth: true
+
+                    //
+                    // Image data type
+                    //
+                    ColumnLayout {
+                        spacing: app.spacing
+                        Layout.fillWidth: true
+
+                        Button {
+                            id: lsbPreviewModeBt
+                            icon.width: 24
+                            icon.height: 24
+                            Layout.fillWidth: true
+                            icon.color: palette.buttonText
+                            Layout.alignment: Qt.AlignVCenter
+                            icon.source: checked ? "qrc:/icons/grain-24px.svg" :
+                                                   "qrc:/icons/show_chart-24px.svg"
+                            checkable: true
+                            onCheckedChanged: {
+                                if (checked)
+                                    lsbImageUrl = "image://lsb/data"
+                                else
+                                    lsbImageUrl = "image://lsb/composite"
+
+                                image.source = ""
+                                image.source = lsbImageUrl
+                            }
+                        }
+
+                        Label {
+                            font.pixelSize: 9
+                            Layout.fillWidth: true
+                            wrapMode: Label.WordWrap
+                            horizontalAlignment: Text.AlignHCenter
+                            text: lsbPreviewModeBt.checked ? qsTr("Composite Image") :
+                                                     qsTr("Differential Image")
+                        }
+
+                        Item {
+                            Layout.fillHeight: true
+                        }
+                    }
+
+                    //
+                    // Save image
+                    //
+                    ColumnLayout {
+                        spacing: app.spacing
+                        Layout.fillWidth: true
+
+                        Button {
+                            icon.width: 24
+                            icon.height: 24
+                            Layout.fillWidth: true
+                            icon.color: palette.buttonText
+                            onClicked: CBridge.saveImages()
+                            Layout.alignment: Qt.AlignVCenter
+                            icon.source: "qrc:/icons/save-24px.svg"
+                        }
+
+                        Label {
+                            font.pixelSize: 9
+                            Layout.fillWidth: true
+                            wrapMode: Label.WordWrap
+                            text: qsTr("Save Output Images")
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+
+                        Item {
+                            Layout.fillHeight: true
+                        }
+                    }
+
+                    //
+                    // Select image source
+                    //
+                    ColumnLayout {
+                        spacing: app.spacing
+                        Layout.fillWidth: true
+
+                        Button {
+                            icon.width: 24
+                            icon.height: 24
+                            Layout.fillWidth: true
+                            icon.color: palette.buttonText
+                            Layout.alignment: Qt.AlignVCenter
+                            onClicked: CBridge.selectLsbImageSource()
+                            icon.source: "qrc:/icons/image_search-24px.svg"
+                        }
+
+                        Label {
+                            font.pixelSize: 9
+                            Layout.fillWidth: true
+                            wrapMode: Label.WordWrap
+                            text: qsTr("Select Image Source")
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+
+                        Item {
+                            Layout.fillHeight: true
                         }
                     }
                 }
 
-                Timer {
-                    id: timer
-                    interval: 200
-                    onTriggered: highlightColor = "#000"
-                }
-
-                RoundButton {
-                    icon.width: 32
-                    icon.height: 32
-                    background: Item {}
-                    icon.color: highlightColor
-                    Layout.alignment: Qt.AlignVCenter
-                    icon.source: "qrc:/icons/account_circle-24px.svg"
-                }
-
-                ColumnLayout {
-                    spacing: app.spacing / 4
-                    Layout.alignment: Qt.AlignVCenter
-
-                    Label {
-                        font.bold: true
-                        font.pixelSize: 12
-                        color: highlightColor
-                        width: peerList.width
-                        elide: Label.ElideRight
-                        text: modelData.split("@")[0]
-                    }
-
-                    Label {
-                        font.pixelSize: 10
-                        color: highlightColor
-                        width: peerList.width
-                        elide: Label.ElideRight
-                        text: modelData.split("@")[1]
-                    }
-                }
-            }
-        }
-    }
-
-    //
-    // LSB image display
-    //
-    TextField {
-        id: lsbImage
-
-        height: sidebarSize + 129
-        readOnly: true
-        width: sidebarSize
-
-        anchors {
-            right: parent.right
-            margins: app.spacing
-            bottom: parent.bottom
-        }
-
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: app.spacing
-
-            //
-            // Spacer
-            //
-            Item {
-                height: 1
-            }
-
-            //
-            // Controls
-            //
-            RowLayout {
-                spacing: app.spacing
-                Layout.fillWidth: true
-
                 //
-                // Image data type
+                // Spacer
                 //
-                Button {
-                    icon.width: 24
-                    icon.height: 24
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    icon.source: checked ? "qrc:/icons/grain-24px.svg" :
-                                           "qrc:/icons/show_chart-24px.svg"
-                    checkable: true
-                    onCheckedChanged: {
-                        if (checked)
-                            lsbImageUrl = "image://lsb/data"
-                        else
-                            lsbImageUrl = "image://lsb/composite"
-
-                        image.source = ""
-                        image.source = lsbImageUrl
-                    }
+                Item {
+                    height: 1
                 }
 
                 //
-                // Save image
+                // Checkbox
                 //
-                Button {
-                    icon.width: 24
-                    icon.height: 24
-                    Layout.fillWidth: true
-                    onClicked: CBridge.saveImages()
-                    Layout.alignment: Qt.AlignVCenter
-                    icon.source: "qrc:/icons/save-24px.svg"
+                CheckBox {
+                    id: generateLsbImagesCheck
+                    checked: CBridge.generateImages
+                    text: qsTr("Generate LSB images automatically")
+                    onCheckedChanged: CBridge.enableGeneratedImages(checked)
                 }
 
                 //
-                // Set gallery location
+                // Spacer
                 //
-                Button {
-                    icon.width: 24
-                    icon.height: 24
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    icon.source: "qrc:/icons/image_search-24px.svg"
-                    onClicked: CBridge.selectLsbImagesSourceDirectory()
+                Item {
+                    height: 1
                 }
 
                 //
-                // Clear chat
+                // Crypto config title
                 //
-                Button {
-                    icon.width: 24
-                    icon.height: 24
-                    Layout.fillWidth: true
-                    onClicked: chatText.text = ""
-                    Layout.alignment: Qt.AlignVCenter
-                    icon.source: "qrc:/icons/delete-24px.svg"
-                }
-            }
-
-            //
-            // Spacer
-            //
-            Item {
-                height: 1
-            }
-
-            //
-            // Password controls
-            //
-            RowLayout {
-                spacing: app.spacing
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignVCenter
-
-                TextField {
-                    id: pwTextfield
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    placeholderText: qsTr("Enter a password") + "..."
-                    echoMode: visibleBt.checked ? TextInput.Normal : TextInput.Password
+                Label {
+                    font.bold: true
+                    font.pixelSize: 16
+                    text: qsTr("Output Image Preview") + ":"
                 }
 
-                Button {
-                    id: visibleBt
-                    checkable: true
-                    Layout.alignment: Qt.AlignVCenter
-                    icon.source: checked ? "qrc:/icons/visibility_off-24px.svg" :
-                                           "qrc:/icons/visibility-24px.svg"
-                }
-            }
+                //
+                // Image display
+                //
+                Rectangle {
+                    border.width: 2
+                    color: palette.base
+                    border.color: palette.alternateBase
+                    Layout.alignment: Qt.AlignCenter
+                    Layout.minimumWidth: sidebarSize - 2 * app.spacing
+                    Layout.maximumWidth: sidebarSize - 2 * app.spacing
+                    Layout.maximumHeight: sidebarSize - 2 * app.spacing
+                    Layout.minimumHeight: sidebarSize - 2 * app.spacing
 
-            //
-            // Spacer
-            //
-            Item {
-                height: 1
-            }
+                    Image {
+                        id: image
+                        cache: false
+                        smooth: true
+                        anchors.margins: 2
+                        asynchronous: true
+                        source: lsbImageUrl
+                        anchors.fill: parent
+                        fillMode: Image.PreserveAspectCrop
 
-            //
-            // Checkbox
-            //
-            CheckBox {
-                checked: true
-                text: qsTr("Generate LSB images automatically")
-                onCheckedChanged: CBridge.enableGeneratedImages(checked)
-            }
-
-            //
-            // Spacer
-            //
-            Item {
-                height: 1
-            }
-
-            //
-            // Image display
-            //
-            Image {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumWidth: sidebarSize
-                Layout.maximumHeight: sidebarSize
-
-                id: image
-                cache: false
-                smooth: true
-                asynchronous: true
-                source: lsbImageUrl
-                Layout.alignment: Qt.AlignCenter
-                fillMode: Image.PreserveAspectCrop
-
-                Connections {
-                    target: CBridge
-                    onLsbImageChanged: {
-                        image.source = ""
-                        image.source = lsbImageUrl
+                        Connections {
+                            target: CBridge
+                            onLsbImageChanged: {
+                                image.source = ""
+                                image.source = lsbImageUrl
+                            }
+                        }
                     }
                 }
             }

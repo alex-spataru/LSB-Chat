@@ -23,9 +23,12 @@
 import QtQuick 2.0
 import QtQuick.Layouts 1.0
 import QtQuick.Controls 2.0
+import Qt.labs.settings 1.0
 
 RowLayout {
     spacing: app.spacing
+    Layout.minimumHeight: 32
+    Layout.maximumHeight: 32
 
     //
     // Clear message text field when a message is sent
@@ -37,11 +40,22 @@ RowLayout {
     }
 
     //
+    // Save/load settings
+    //
+    Settings {
+        property alias encrypt: cryptoBt.checked
+    }
+
+    //
     // Crypto button
     //
     Button {
+        id: cryptoBt
+        checkable: true
+        Layout.fillHeight: true
+        icon.color: palette.buttonText
         Layout.alignment: Qt.AlignVCenter
-        onClicked: CBridge.cryptoEnabled = !CBridge.cryptoEnabled
+        onCheckedChanged: CBridge.cryptoEnabled = checked
         icon.source: CBridge.cryptoEnabled ? "qrc:/icons/enhanced_encryption-24px.svg" :
                                              "qrc:/icons/no_encryption-24px.svg"
     }
@@ -52,15 +66,18 @@ RowLayout {
     TextField {
         id: textField
         Layout.fillWidth: true
+        Layout.fillHeight: true
+        onAccepted: messageSent(text)
         Layout.alignment: Qt.AlignVCenter
         placeholderText: qsTr("Please type a message") + "..."
-        onAccepted: messageSent(text)
     }
 
     //
     // Send button
     //
     Button {
+        Layout.fillHeight: true
+        icon.color: palette.buttonText
         Layout.alignment: Qt.AlignVCenter
         enabled: textField.text.length > 0
         onClicked: messageSent(textField.text)
@@ -71,6 +88,8 @@ RowLayout {
     // Attach button
     //
     Button {
+        Layout.fillHeight: true
+        icon.color: palette.buttonText
         onClicked: CBridge.sendFile()
         Layout.alignment: Qt.AlignVCenter
         icon.source: "qrc:/icons/attach_file-24px.svg"
