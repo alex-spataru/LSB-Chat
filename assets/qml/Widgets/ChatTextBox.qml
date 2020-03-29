@@ -53,11 +53,10 @@ RowLayout {
     // Crypto button
     //
     Button {
-        checkable: true
         Layout.alignment: Qt.AlignVCenter
-        onCheckedChanged: cryptoClicked(checked)
-        icon.source: checked ? "qrc:/icons/enhanced_encryption-24px.svg" :
-                               "qrc:/icons/no_encryption-24px.svg"
+        onClicked: cryptoClicked(!CBridge.cryptoEnabled)
+        icon.source: CBridge.cryptoEnabled ? "qrc:/icons/enhanced_encryption-24px.svg" :
+                                             "qrc:/icons/no_encryption-24px.svg"
     }
 
     //

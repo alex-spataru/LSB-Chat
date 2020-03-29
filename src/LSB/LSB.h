@@ -19,3 +19,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+#ifndef LSB_H
+#define LSB_H
+
+#include <QImage>
+#include <QObject>
+#include <QByteArray>
+
+class LSB
+{
+   public:
+      static QImage currentImageData();
+      static QImage currentCompositeImage();
+      static QImage encodeData(const QByteArray& data);
+      static QByteArray decodeData(const QImage& image);
+      static QByteArray imageToBinaryData(const QImage& image);
+      static QByteArray decodeData(const QByteArray& rawImageData);
+};
+
+#endif

@@ -80,6 +80,7 @@ ApplicationWindow {
             onAttachClicked: mw.attachClicked()
             onMessageSent: mw.messageSent(message)
             onSettingsClicked: mw.settingsClicked()
+            onCryptoClicked: mw.cryptoClicked(enabled)
         }
     }
 }

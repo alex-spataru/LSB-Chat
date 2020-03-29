@@ -39,6 +39,7 @@ Item {
         Component.onCompleted: mainWindow.show()
         onMessageSent: CBridge.sendMessage(message)
         onSettingsClicked: preferences.showNormal()
+        onCryptoClicked: CBridge.setCryptoEnabled(enabled)
     }
 
     //

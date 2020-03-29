@@ -20,9 +20,54 @@
  * THE SOFTWARE.
  */
 
+#include <QFont>
 #include <QObject>
+#include <QPainter>
+#include <QFontMetrics>
+#include <QQuickImageProvider>
 
+#include "LSB/LSB.h"
 #include "Comms/NetworkComms.h"
+
+class LsbImageProvider : public QQuickImageProvider
+{
+   public:
+      LsbImageProvider() : QQuickImageProvider(QQuickImageProvider::Pixmap)
+      {
+         // Nothing to do
+      }
+
+      QPixmap requestPixmap(const QString& id, QSize* size, const QSize& requestedSize) override
+      {
+         Q_UNUSED(requestedSize)
+
+         // Show composite image
+         if(id == "composite")
+            return QPixmap::fromImage(LSB::currentCompositeImage());
+
+         // Show LSB data image
+         else if(id == "data")
+            return QPixmap::fromImage(LSB::currentImageData());
+
+         // Generate pixmap with id as text
+         else {
+            QPixmap pixmap(size->width(), size->height());
+            QPainter painter(&pixmap);
+
+            // Set text font
+            QFont font("Arial", size->height() / 18, QFont::Bold);
+            painter.setFont(font);
+            painter.setPen(Qt::white);
+
+            // Draw text
+            painter.drawText(QRectF(0, 0, size->width(), size->height()),
+                             Qt::AlignCenter, "No valid image");
+
+            // Return obtained pixmap
+            return pixmap;
+         }
+      }
+};
 
 class QmlBridge : public QObject
 {
@@ -32,11 +77,17 @@ class QmlBridge : public QObject
       Q_PROPERTY(QStringList lsbImagePaths READ getLsbImagePaths NOTIFY lsbDbUpdated)
       Q_PROPERTY(QStringList lsbImageDates READ getLsbImageDates NOTIFY lsbDbUpdated)
       Q_PROPERTY(QStringList lsbImageAuthorrs READ getLsbImageAuthors NOTIFY lsbDbUpdated)
+      Q_PROPERTY(QString password READ getPassword WRITE setPassword NOTIFY passwordChanged)
+      Q_PROPERTY(bool cryptoEnabled READ getCryptoEnabled WRITE setCryptoEnabled NOTIFY
+                 cryptoEnabledChanged)
 
    signals:
       void lsbDbUpdated();
+      void lsbImageChanged();
       void chatTextUpdated();
+      void passwordChanged();
       void peerCountChanged();
+      void cryptoEnabledChanged();
       void newParticipant(const QString& name);
       void participantLeft(const QString& name);
       void newMessage(const QString& user, const QString& message);
@@ -51,16 +102,20 @@ class QmlBridge : public QObject
       QStringList getLsbImageAuthors() const;
 
       QString getUserName() const;
+      QString getPassword() const;
+      bool getCryptoEnabled() const;
       QString getLsbImagesDirectory() const;
 
    public slots:
       void init();
       void sendFile();
+      void saveImages();
       void updateLsbImageDb();
       void openLsbImagesDirectory();
       void changeSortType(const int type);
       void sendMessage(const QString& text);
       void setPassword(const QString& password);
+      void setCryptoEnabled(const bool enabled);
       void setLsbSearchQuery(const QString& query);
       void openMessage(const QString& filePath, const QString& password);
 
@@ -70,7 +125,13 @@ class QmlBridge : public QObject
       void handleMessages(const QString& name, const QByteArray& data);
 
    private:
+      QString saveFile(const QString& name, const QByteArray& data, bool* ok);
+      QString encodeData(const QByteArray& data, bool* ok, bool* continueSending);
+
+   private:
+      QString m_password;
       QStringList m_peers;
+      bool m_cryptoEnabled;
       QStringList m_lsbImagePaths;
       QStringList m_lsbImageDates;
       QStringList m_lsbImageAuthors;

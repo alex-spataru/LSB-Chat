@@ -41,6 +41,7 @@ int main(int argc, char** argv)
    QmlBridge bridge;
    QQmlApplicationEngine engine;
    QQuickStyle::setStyle("Imagine");
+   engine.addImageProvider(QLatin1String("lsb"), new LsbImageProvider);
    engine.rootContext()->setContextProperty("CBridge", &bridge);
    engine.rootContext()->setContextProperty("CAppName", app.applicationName());
    engine.rootContext()->setContextProperty("CAppVersion", app.applicationVersion());

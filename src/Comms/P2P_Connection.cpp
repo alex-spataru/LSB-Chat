@@ -27,7 +27,7 @@
  */
 static const int PONG_TIMEOUT = 60 * 1000;
 static const int PING_INTERVAL = 5 * 1000;
-static const int TRANSFER_TIMEOUT = 30 * 1000;
+static const int TRANSFER_TIMEOUT = 3 * 1000;
 
 /*
  * Protocol is defined as follows, using the CBOR Data Definition Language:
@@ -210,6 +210,7 @@ void P2P_Connection::processReadyRead()
          if(m_reader.isByteArray()) {
             auto r = m_reader.readByteArray();
             m_buffer += r.data;
+
             if(r.status != QCborStreamReader::EndOfString)
                continue;
          }

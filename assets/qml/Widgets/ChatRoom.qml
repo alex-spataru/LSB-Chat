@@ -30,6 +30,9 @@ Item {
     //
     Component.onCompleted: CBridge.init()
 
+    property int sidebarSize: 256
+    property string lsbImageUrl: "image://lsb/composite"
+
     //
     // React to the events given the the QmlBridge class
     //
@@ -110,6 +113,7 @@ Item {
                 wrapMode: TextEdit.Wrap
                 textFormat: TextEdit.RichText
                 width: chatroom.width - 2 * app.spacing
+                onLinkActivated: Qt.openUrlExternally(link)
             }
         }
     }
@@ -119,8 +123,8 @@ Item {
     //
     TextField {
         id: peers
-        width: 192
         readOnly: true
+        width: sidebarSize
 
         //
         // Anchor to the right of the screen and fill height
@@ -129,7 +133,7 @@ Item {
             top: parent.top
             right: parent.right
             margins: app.spacing
-            bottom: parent.bottom
+            bottom: lsbImage.top
         }
 
         //
@@ -211,6 +215,90 @@ Item {
                         width: peerList.width
                         elide: Label.ElideRight
                         text: modelData.split("@")[1]
+                    }
+                }
+            }
+        }
+    }
+
+    //
+    // LSB image display
+    //
+    TextField {
+        id: lsbImage
+
+        height: sidebarSize + 48
+        readOnly: true
+        width: sidebarSize
+
+        anchors {
+            right: parent.right
+            margins: app.spacing
+            bottom: parent.bottom
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: app.spacing
+
+            RowLayout {
+                spacing: app.spacing
+                Layout.fillWidth: true
+
+                //
+                // Image data type
+                //
+                Button {
+                    icon.width: 24
+                    icon.height: 24
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    icon.source: checked ? "qrc:/icons/grain-24px.svg" :
+                                           "qrc:/icons/show_chart-24px.svg"
+                    checkable: true
+                    onCheckedChanged: {
+                        if (checked)
+                            lsbImageUrl = "image://lsb/data"
+                        else
+                            lsbImageUrl = "image://lsb/composite"
+
+                        image.source = ""
+                        image.source = lsbImageUrl
+                    }
+                }
+
+                //
+                // Save image
+                //
+                Button {
+                    icon.width: 24
+                    icon.height: 24
+                    Layout.fillWidth: true
+                    onClicked: CBridge.saveImages()
+                    Layout.alignment: Qt.AlignVCenter
+                    icon.source: "qrc:/icons/save-24px.svg"
+                }
+            }
+
+            Image {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.maximumWidth: sidebarSize
+                Layout.maximumHeight: sidebarSize
+
+                id: image
+                cache: false
+                smooth: true
+                asynchronous: true
+                source: lsbImageUrl
+                Layout.alignment: Qt.AlignCenter
+                fillMode: Image.PreserveAspectCrop
+
+                Connections {
+                    target: CBridge
+                    onLsbImageChanged: {
+                        image.source = ""
+                        image.source = lsbImageUrl
                     }
                 }
             }

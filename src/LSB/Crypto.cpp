@@ -22,17 +22,18 @@
 
 #include "Crypto.h"
 
-QByteArray Crypto::encryptData(const QByteArray& data, const QByteArray& key, bool* error)
+QByteArray Crypto::encryptData(const QByteArray& data, const QByteArray& key, CryptoError* error)
 {
-   Q_UNUSED(data)
-   Q_UNUSED(key)
-   Q_UNUSED(error)
+   if(key.isEmpty()) {
+      *error = kPasswordEmpty;
+      return data;
+   }
 
    QByteArray encryptedData;
    return encryptedData;
 }
 
-QByteArray Crypto::decryptData(const QByteArray& data, const QByteArray& key, bool* error)
+QByteArray Crypto::decryptData(const QByteArray& data, const QByteArray& key, CryptoError* error)
 {
    Q_UNUSED(data)
    Q_UNUSED(key)
