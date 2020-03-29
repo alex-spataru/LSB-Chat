@@ -81,17 +81,17 @@ QImage LSB::encodeData(const QByteArray& data)
    // Reset images (generate random image case)
    if(useGeneratedImages() || (SOURCE_IMAGE.width() == 0 && SOURCE_IMAGE.height() == 0)) {
       // Resize image to data size
-      const int size = static_cast<int>(round(sqrt(static_cast<double>(data.length())))) + 120;
+      const int size = data.length() * 8 + 120;
       LSB_IMAGE = QImage(QSize(size, size), QImage::Format_RGB32);
       LSB_IMAGE_DATA = QImage(QSize(size, size), QImage::Format_RGB32);
 
       // Fill image with random pixels
-      QRandomGenerator* generator = QRandomGenerator::system();
+      QRandomGenerator generator = QRandomGenerator::securelySeeded();
       for(int i = 0; i < LSB_IMAGE.width(); ++i) {
          for(int j = 0; j < LSB_IMAGE.height(); ++j) {
-            int r = generator->bounded(0, 255);
-            int g = generator->bounded(0, 255);
-            int b = generator->bounded(0, 255);
+            int r = generator.bounded(0, 100);
+            int g = generator.bounded(0, 255);
+            int b = generator.bounded(100, 255);
             LSB_IMAGE.setPixel(i, j, qRgb(r, g, b));
             LSB_IMAGE_DATA.setPixel(i, j, qRgb(0, 0, 0));
          }
@@ -117,25 +117,45 @@ QImage LSB::encodeData(const QByteArray& data)
 
    // Write data to image using LSB
    int bytesWritten = 0;
-   for(int i = 0; i < LSB_IMAGE.width(); ++i) {
-      for(int j = 0; j < LSB_IMAGE.height(); ++j) {
-         // We have already written all the data
-         if(injection.length() <= i * LSB_IMAGE.height() + j)
-            break;
+   int diagonalSize = qMin(LSB_IMAGE.width(), LSB_IMAGE.height());
+   for(int i = 0; i < diagonalSize; ++i) {
+       // We have written all data, exit loop
+      if (bytesWritten >= injection.length())
+          break;
 
-         // Get data byte
-         char byte = injection.at(i * LSB_IMAGE.height() + j);
+      // Get byte & pixel value
+      char byte = injection.at(bytesWritten);
+      QRgb pixel1 = LSB_IMAGE.pixel(i + 0, i + 0);
+      QRgb pixel2 = LSB_IMAGE.pixel(i + 1, i + 1);
+      QRgb pixel3 = LSB_IMAGE.pixel(i + 2, i + 2);
 
-         // Get pizel value
-         QRgb pixel = LSB_IMAGE.pixel(i, j);
+      // Get individual bits
+      int bits[8];
+      for (int i = 0; i < 8; ++i)
+          bits[i] = ((1 << (i % 8)) & byte) >> (i % 8);
 
-         // Write data to pixels
-         LSB_IMAGE_DATA.setPixel(i, j, qRgb(byte, 0, 0));
-         LSB_IMAGE.setPixel(i, j, qRgb(byte, qGreen(pixel), qBlue(pixel)));
+      // Write on LSBs of each byte of the image
+      QRgb lsbPixel1 = qRgb((qRed(pixel1)   & 0xFE) | bits[0],
+                            (qGreen(pixel1) & 0xFE) | bits[1],
+                            (qBlue(pixel1)  & 0xFE) | bits[2]);
+      QRgb lsbPixel2 = qRgb((qRed(pixel2)   & 0xFE) | bits[3],
+                            (qGreen(pixel2) & 0xFE) | bits[4],
+                            (qBlue(pixel2)  & 0xFE) | bits[5]);
+      QRgb lsbPixel3 = qRgb((qRed(pixel3)   & 0xFE) | bits[6],
+                            (qGreen(pixel3) & 0xFE) | bits[7],
+                            (qBlue(pixel3)));
 
-         // Increment bytes written counter
-         ++bytesWritten;
-      }
+      // Update pixels of image
+      LSB_IMAGE.setPixel(i + 0, i + 0, lsbPixel1);
+      LSB_IMAGE.setPixel(i + 1, i + 2, lsbPixel2);
+      LSB_IMAGE.setPixel(i + 2, i + 2, lsbPixel3);
+      LSB_IMAGE_DATA.setPixel(i + 0, i + 0, lsbPixel1);
+      LSB_IMAGE_DATA.setPixel(i + 1, i + 2, lsbPixel2);
+      LSB_IMAGE_DATA.setPixel(i + 2, i + 2, lsbPixel3);
+
+      // Increment i & written bytes
+      i += 3;
+      ++bytesWritten;
    }
 
    // Warn user if image was too small
