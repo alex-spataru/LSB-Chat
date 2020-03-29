@@ -39,7 +39,7 @@ ApplicationWindow {
     // Window geometry
     //
     minimumWidth: 740
-    minimumHeight: 740
+    minimumHeight: 640
 
     //
     // Window title

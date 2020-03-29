@@ -40,27 +40,6 @@ RowLayout {
     }
 
     //
-    // Save/load settings
-    //
-    Settings {
-        property alias encrypt: cryptoBt.checked
-    }
-
-    //
-    // Crypto button
-    //
-    Button {
-        id: cryptoBt
-        checkable: true
-        Layout.fillHeight: true
-        icon.color: palette.buttonText
-        Layout.alignment: Qt.AlignVCenter
-        onCheckedChanged: CBridge.cryptoEnabled = checked
-        icon.source: CBridge.cryptoEnabled ? "qrc:/icons/enhanced_encryption-24px.svg" :
-                                             "qrc:/icons/no_encryption-24px.svg"
-    }
-
-    //
     // Message field
     //
     TextField {

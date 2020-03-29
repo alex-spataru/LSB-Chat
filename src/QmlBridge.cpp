@@ -177,7 +177,7 @@ void QmlBridge::sendFile()
 
     // Emit signal
     emit lsbImageChanged();
-    emit newMessage(getUserName(), message);
+    emit newMessage(getUserName() + (encryptionOk ? tr(" (Encrypted)") : ""), message);
 }
 
 void QmlBridge::saveImages()

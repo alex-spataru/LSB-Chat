@@ -39,7 +39,7 @@ RowLayout {
     //
     // Define sidebar size
     //
-    property int sidebarSize: 346
+    property int sidebarSize: 250
 
     //
     // Set the preview URL to use
@@ -135,11 +135,20 @@ RowLayout {
                 id: chatText
                 readOnly: true
                 font.pixelSize: 12
-                font.family: "Menlo"
                 wrapMode: TextEdit.Wrap
                 textFormat: TextEdit.RichText
                 width: chatroom.width - 2 * app.spacing
                 onLinkActivated: Qt.openUrlExternally(link)
+                font.family: {
+                    switch (Qt.platform.os.toString()) {
+                    case "mac":
+                        return "Menlo"
+                    case "linux":
+                        return "Mono"
+                    case "windows":
+                        return "Consolas"
+                    }
+                }
             }
         }
     }
@@ -318,9 +327,16 @@ RowLayout {
                         id: passwordTf
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignVCenter
-                        onTextChanged: CBridge.setPassword(text)
                         placeholderText: qsTr("Enter a password") + "..."
                         echoMode: visibleBt.checked ? TextInput.Normal : TextInput.Password
+
+                        onTextChanged: {
+                            CBridge.setPassword(text)
+                            if (text.length > 0)
+                                CBridge.setCryptoEnabled(true)
+                            else
+                                CBridge.setCryptoEnabled(false)
+                        }
 
                         background: Rectangle {
                             border.width: 1
