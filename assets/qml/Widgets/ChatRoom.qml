@@ -318,6 +318,7 @@ RowLayout {
                         id: passwordTf
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignVCenter
+                        onTextChanged: CBridge.setPassword(text)
                         placeholderText: qsTr("Enter a password") + "..."
                         echoMode: visibleBt.checked ? TextInput.Normal : TextInput.Password
 
@@ -357,110 +358,110 @@ RowLayout {
                 //
                 // Buttons
                 //
-                RowLayout {
-                    spacing: app.spacing
+                GridLayout {
+                    id: gridLayout
+
+                    columns: 4
+                    rowSpacing: 0
                     Layout.fillWidth: true
+                    columnSpacing: (sidebarSize - (itemWidth * columns)) / (columns * 2)
 
-                    //
-                    // Image data type
-                    //
-                    ColumnLayout {
-                        spacing: app.spacing
-                        Layout.fillWidth: true
+                    readonly property real itemWidth: (sidebarSize - 4 * app.spacing) / columns
 
-                        Button {
-                            id: lsbPreviewModeBt
-                            icon.width: 24
-                            icon.height: 24
-                            Layout.fillWidth: true
-                            icon.color: palette.buttonText
-                            Layout.alignment: Qt.AlignVCenter
-                            icon.source: checked ? "qrc:/icons/grain-24px.svg" :
-                                                   "qrc:/icons/show_chart-24px.svg"
-                            checkable: true
-                            onCheckedChanged: {
-                                if (checked)
-                                    lsbImageUrl = "image://lsb/data"
-                                else
-                                    lsbImageUrl = "image://lsb/composite"
+                    Button {
+                        id: lsbPreviewModeBt
+                        icon.width: 24
+                        icon.height: 24
+                        icon.color: palette.buttonText
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.minimumWidth: gridLayout.itemWidth
+                        Layout.maximumWidth: gridLayout.itemWidth
+                        icon.source: checked ? "qrc:/icons/grain-24px.svg" :
+                                               "qrc:/icons/show_chart-24px.svg"
+                        checkable: true
+                        onCheckedChanged: {
+                            if (checked)
+                                lsbImageUrl = "image://lsb/data"
+                            else
+                                lsbImageUrl = "image://lsb/composite"
 
-                                image.source = ""
-                                image.source = lsbImageUrl
-                            }
-                        }
-
-                        Label {
-                            font.pixelSize: 9
-                            Layout.fillWidth: true
-                            wrapMode: Label.WordWrap
-                            horizontalAlignment: Text.AlignHCenter
-                            text: lsbPreviewModeBt.checked ? qsTr("Composite Image") :
-                                                     qsTr("Differential Image")
-                        }
-
-                        Item {
-                            Layout.fillHeight: true
+                            image.source = ""
+                            image.source = lsbImageUrl
                         }
                     }
 
-                    //
-                    // Save image
-                    //
-                    ColumnLayout {
-                        spacing: app.spacing
-                        Layout.fillWidth: true
-
-                        Button {
-                            icon.width: 24
-                            icon.height: 24
-                            Layout.fillWidth: true
-                            icon.color: palette.buttonText
-                            onClicked: CBridge.saveImages()
-                            Layout.alignment: Qt.AlignVCenter
-                            icon.source: "qrc:/icons/save-24px.svg"
-                        }
-
-                        Label {
-                            font.pixelSize: 9
-                            Layout.fillWidth: true
-                            wrapMode: Label.WordWrap
-                            text: qsTr("Save Output Images")
-                            horizontalAlignment: Text.AlignHCenter
-                        }
-
-                        Item {
-                            Layout.fillHeight: true
-                        }
+                    Button {
+                        icon.width: 24
+                        icon.height: 24
+                        icon.color: palette.buttonText
+                        onClicked: CBridge.saveImages()
+                        Layout.alignment: Qt.AlignVCenter
+                        icon.source: "qrc:/icons/save-24px.svg"
+                        Layout.minimumWidth: gridLayout.itemWidth
+                        Layout.maximumWidth: gridLayout.itemWidth
                     }
 
-                    //
-                    // Select image source
-                    //
-                    ColumnLayout {
-                        spacing: app.spacing
-                        Layout.fillWidth: true
+                    Button {
+                        icon.width: 24
+                        icon.height: 24
+                        icon.color: palette.buttonText
+                        Layout.alignment: Qt.AlignVCenter
+                        onClicked: CBridge.selectLsbImageSource()
+                        icon.source: "qrc:/icons/image_search-24px.svg"
+                        Layout.minimumWidth: gridLayout.itemWidth
+                        Layout.maximumWidth: gridLayout.itemWidth
+                    }
 
-                        Button {
-                            icon.width: 24
-                            icon.height: 24
-                            Layout.fillWidth: true
-                            icon.color: palette.buttonText
-                            Layout.alignment: Qt.AlignVCenter
-                            onClicked: CBridge.selectLsbImageSource()
-                            icon.source: "qrc:/icons/image_search-24px.svg"
-                        }
+                    Button {
+                        icon.width: 24
+                        icon.height: 24
+                        icon.color: palette.buttonText
+                        Layout.alignment: Qt.AlignVCenter
+                        onClicked: CBridge.extractInformation()
+                        Layout.minimumWidth: gridLayout.itemWidth
+                        Layout.maximumWidth: gridLayout.itemWidth
+                        icon.source: "qrc:/icons/unarchive-24px.svg"
+                    }
 
-                        Label {
-                            font.pixelSize: 9
-                            Layout.fillWidth: true
-                            wrapMode: Label.WordWrap
-                            text: qsTr("Select Image Source")
-                            horizontalAlignment: Text.AlignHCenter
-                        }
+                    Label {
+                        font.pixelSize: 9
+                        wrapMode: Label.WordWrap
+                        width: gridLayout.itemWidth
+                        horizontalAlignment: Text.AlignHCenter
+                        Layout.minimumWidth: gridLayout.itemWidth
+                        Layout.maximumWidth: gridLayout.itemWidth
+                        text: lsbPreviewModeBt.checked ? qsTr("Show Composite Image") :
+                                                         qsTr("Show Differential Image")
+                    }
 
-                        Item {
-                            Layout.fillHeight: true
-                        }
+                    Label {
+                        font.pixelSize: 9
+                        wrapMode: Label.WordWrap
+                        width: gridLayout.itemWidth
+                        text: qsTr("Save Output Images")
+                        horizontalAlignment: Text.AlignHCenter
+                        Layout.minimumWidth: gridLayout.itemWidth
+                        Layout.maximumWidth: gridLayout.itemWidth
+                    }
+
+                    Label {
+                        font.pixelSize: 9
+                        wrapMode: Label.WordWrap
+                        width: gridLayout.itemWidth
+                        text: qsTr("Select Image Source")
+                        horizontalAlignment: Text.AlignHCenter
+                        Layout.minimumWidth: gridLayout.itemWidth
+                        Layout.maximumWidth: gridLayout.itemWidth
+                    }
+
+                    Label {
+                        font.pixelSize: 9
+                        wrapMode: Label.WordWrap
+                        width: gridLayout.itemWidth
+                        text: qsTr("Extract Data from Image")
+                        horizontalAlignment: Text.AlignHCenter
+                        Layout.minimumWidth: gridLayout.itemWidth
+                        Layout.maximumWidth: gridLayout.itemWidth
                     }
                 }
 

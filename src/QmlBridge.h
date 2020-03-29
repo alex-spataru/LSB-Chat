@@ -104,6 +104,7 @@ public slots:
     void init();
     void sendFile();
     void saveImages();
+    void extractInformation();
     void selectLsbImageSource();
     void sendMessage(const QString& text);
     void setPassword(const QString& password);

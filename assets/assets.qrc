@@ -23,6 +23,6 @@
         <file>icons/save-24px.svg</file>
         <file>icons/grain-24px.svg</file>
         <file>icons/show_chart-24px.svg</file>
-        <file>icons/delete-24px.svg</file>
+        <file>icons/unarchive-24px.svg</file>
     </qresource>
 </RCC>

@@ -35,27 +35,65 @@ static QImage LSB_IMAGE =  LSB::generateImage(100, true);
 static QImage SOURCE_IMAGE = LSB::generateImage(100, false);
 static QImage LSB_IMAGE_DATA =  LSB::generateImage(100, false);
 
-int set_bit(int num, int position, bool bit)
+/*
+ * Define image format to use when reading/exporting image data to binary data
+ */
+static const char* IMAGE_FORMAT = "PNG";
+
+/**
+ * @brief set_bit
+ * @param num
+ * @param position
+ * @param bit
+ * @return
+ *
+ * Changes the bit of @a num at the n-th @a position with the given @a bitValue
+ */
+int set_bit(int num, int position, bool bitValue)
 {
     int mask = 1 << position;
 
-    if(bit)
+    if(bitValue)
         return num | mask;
     else
         return num & ~mask;
 }
 
+/**
+ * @brief get_bit
+ * @param num
+ * @param position
+ * @return
+ *
+ * Returns the value of the bit at the n-th @a position of num
+ */
 bool get_bit(int num, int position)
 {
     bool bit = num & (1 << position);
     return bit;
 }
 
+/**
+ * @brief LSB::useGeneratedImages
+ * @return
+ *
+ * Returns @c true if the LSB algorithm shall be executed on an auto-generated image
+ */
 bool LSB::useGeneratedImages()
 {
     return USE_GENERATED_IMAGES;
 }
 
+/**
+ * @brief LSB::enableGeneratedImages
+ * @param enabled
+ *
+ * If @a enabled is set to @c true, LSB module will generate an image filled with random pixels
+ * for each time the user executes the LSB-Write algorithm.
+ *
+ * If @a enabled is set to @c false, LSB module will execute the LSB-Write algorithm over an
+ * existing image selected by the user.
+ */
 void LSB::enableGeneratedImages(const bool enabled)
 {
     USE_GENERATED_IMAGES = enabled;
@@ -72,6 +110,15 @@ void LSB::enableGeneratedImages(const bool enabled)
     }
 }
 
+/**
+ * @brief LSB::setSourceImage
+ * @param image
+ *
+ * Sets the image that the LSB module will use to write data over.
+ *
+ * @note This will only have a visible effect if the user has called @fn enableGeneratedImages
+ *       with argument @a enabled set to @c false).
+ */
 void LSB::setSourceImage(const QImage& image)
 {
     SOURCE_IMAGE = image;
@@ -82,16 +129,40 @@ void LSB::setSourceImage(const QImage& image)
     }
 }
 
+/**
+ * @brief LSB::currentCompositeImage
+ * @return
+ *
+ * Returns the resultant image after executing the LSB algorithm, or the LSB-touched image
+ * received when extracting information with the LSB-Read algorithm.
+ */
 QImage LSB::currentCompositeImage()
 {
     return LSB_IMAGE;
 }
 
+/**
+ * @brief LSB::currentImageData
+ * @return
+ *
+ * Returns an image with black background, which only shows the pixels that have been modified
+ * by the LSB-Write algorithm.
+ */
 QImage LSB::currentImageData()
 {
     return LSB_IMAGE_DATA;
 }
 
+/**
+ * @brief LSB::generateImage
+ * @param size
+ * @param random
+ * @return
+ *
+ * Generates a new rectangular image of the given @a size. If @a random is set to @c true, then
+ * the image will be filled with randomly-generated pixels. Otherwise, the image will be filled
+ * with black pixels.
+ */
 QImage LSB::generateImage(const int size, const bool random)
 {
     // Create image & init. random generator
@@ -120,6 +191,20 @@ QImage LSB::generateImage(const int size, const bool random)
     return image;
 }
 
+/**
+ * @brief LSB::encodeData
+ * @param data
+ * @return
+ *
+ * Encodes the given @a data in an image using the LSB-Write algorithm, the data is encoded in
+ * the following manner:
+ *
+ * 1) Only the hypothenuse will contain data.
+ * 2) The hypothenuse will be calculated considering a rectangular image. The sides are equal
+ *    to the smallest side of the image.
+ * 3) Data will start with the following format @c{$DATA_LENGTH$}
+ * 4) After data length header is written, the given @a data is written over the image
+ */
 QImage LSB::encodeData(const QByteArray& data)
 {
     // Append data size to start
@@ -131,7 +216,7 @@ QImage LSB::encodeData(const QByteArray& data)
 
     // Reset images (generate random image case)
     if(useGeneratedImages() || (SOURCE_IMAGE.width() == 0 && SOURCE_IMAGE.height() == 0)) {
-        const int size = injection.length() * 4;
+        const int size = injection.length() * 3.2;
         LSB_IMAGE = generateImage(size, true);
         LSB_IMAGE_DATA = generateImage(size, false);
     }
@@ -199,6 +284,14 @@ QImage LSB::encodeData(const QByteArray& data)
     return LSB_IMAGE;
 }
 
+/**
+ * @brief LSB::decodeData
+ * @param image
+ * @return
+ *
+ * Decodes and returns the data contained in the given @a image. If the data is invalid, or
+ * the image is invalid, an empty byte array will be returned.
+ */
 QByteArray LSB::decodeData(const QImage& image)
 {
     // Init. variables for obtaining data length
@@ -278,6 +371,14 @@ QByteArray LSB::decodeData(const QImage& image)
     return data;
 }
 
+/**
+ * @brief LSB::imageToBinaryData
+ * @param image
+ * @return
+ *
+ * Converts the given image to a byte array by exporting the image data using the PNG format.
+ * The PNG format was choosen because - unlike JPEG - the format is looseless.
+ */
 QByteArray LSB::imageToBinaryData(const QImage& image)
 {
     // Create buffer to treat byte array as file
@@ -290,7 +391,7 @@ QByteArray LSB::imageToBinaryData(const QImage& image)
 
     // Save image as PNG to buffer
     if(buffer.open(QIODevice::WriteOnly)) {
-        image.save(&buffer, "PNG", 100);
+        image.save(&buffer, IMAGE_FORMAT, 100);
         buffer.close();
     }
 
@@ -298,6 +399,16 @@ QByteArray LSB::imageToBinaryData(const QImage& image)
     return arr;
 }
 
+/**
+ * @brief LSB::decodeData
+ * @param rawImageData
+ * @return
+ *
+ * Creates an image from the given @a rawimageData and attempts to decode the information contained
+ * in the image using the LSB-Read algorithm.
+ *
+ * @note The image format must be PNG, otherwise, the conversion will fail.
+ */
 QByteArray LSB::decodeData(const QByteArray& rawImageData)
 {
     // Copy the raw image data and load it into a memory buffer
@@ -307,7 +418,7 @@ QByteArray LSB::decodeData(const QByteArray& rawImageData)
     // Open the buffer, load image data and decode image
     if(buffer.open(QIODevice::ReadOnly)) {
         QImage image;
-        if(image.load(&buffer, "PNG"))
+        if(image.load(&buffer, IMAGE_FORMAT))
             return decodeData(image);
 
         buffer.close();

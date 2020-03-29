@@ -38,13 +38,13 @@ ApplicationWindow {
     //
     // Window geometry
     //
-    minimumWidth: 900
+    minimumWidth: 740
     minimumHeight: 740
 
     //
     // Window title
     //
-    title: CAppName + " v" + CAppVersion
+    title: CAppName + " " + CAppVersion
 
     //
     // Save/load settings

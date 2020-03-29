@@ -33,12 +33,21 @@ For more clarity, below you can find the image with only the pixels that have be
 
 ![Screenshot](doc/LSB_Data.png)
 
+The program is also capable of generating images to fit the data inputed by the user, here is an example of the composite image:
+
+![Screenshot](doc/LSB_Composite_Generated.png)
+
+... and the diferencial image:
+
+![Screenshot](doc/LSB_Data_Generated.png)
+
+
 ### TODOs
 
 - [x] Implement networking module
 - [x] Implement LSB module
-- [ ] Implement crypto module
-- [ ] Implement C++/QML bridge class
+- [x] Implement crypto module
+- [x] Implement C++/QML bridge class
 - [x] Implement user interface elements
 - [ ] Software testing
 

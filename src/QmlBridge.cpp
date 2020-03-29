@@ -32,7 +32,7 @@
 #include <QDesktopServices>
 
 /*
- * Set maximum transfer limit to 1 Kb (due to forced inefficient LSB alg.)
+ * Set maximum transfer limit to 1 MB
  */
 static qint64 MAX_TRANSFER_SIZE = 1 * 1024;
 
@@ -217,6 +217,32 @@ void QmlBridge::saveImages()
     QDesktopServices::openUrl(compositeUrl);
 }
 
+void QmlBridge::extractInformation()
+{
+    // Select image
+    const QString filePath = QFileDialog::getOpenFileName(Q_NULLPTR,
+                             tr("Select Image"),
+                             QDir::homePath(),
+                             tr("Images (*.png)"));
+
+    // File path empty, abort
+    if(filePath.isEmpty())
+        return;
+
+    // Read image data
+    QFile file(filePath);
+    if (file.open(QFile::ReadOnly)) {
+        handleMessages("LSB Reader (Local)", file.readAll());
+        file.close();
+    }
+
+    // Error opening file
+    else
+        QMessageBox::warning(Q_NULLPTR,
+                             tr("Error loading image"),
+                             tr("Cannot open file for reading, wrong permisions?"));
+}
+
 void QmlBridge::selectLsbImageSource()
 {
     // Select image
@@ -337,27 +363,39 @@ void QmlBridge::handleMessages(const QString& name, const QByteArray& data)
     // Convert from Base64 to normal data
     QByteArray msgData = QByteArray::fromBase64(base64.toUtf8());
 
-    // If data is unencrypted process it directly
-    if(!encrypted) {
-        // Data is a message -> display it on the chat room
-        if(messageType == "Text")
-            emit newMessage(name, QString::fromUtf8(msgData));
+    // Decrypt data if possible
+    if(encrypted) {
+        // User has no password set, abort
+        if (getPassword().isEmpty())
+            return;
 
-        // Data is a file -> save it to downloads and generate message
-        else if(messageType == "File") {
-            // Try to save the file
-            bool ok;
-            QString filePath = saveFile(fileName, msgData, &ok);
-            QUrl url = QUrl::fromLocalFile(filePath);
+        // Try to decrypt data with current password
+        CryptoError error;
+        QByteArray decrypted = Crypto::decryptData(msgData, getPassword().toUtf8(), &error);
 
-            // File saved correctly, generate message with link to file
-            if(ok) {
-                QString message = tr("Sent file \"%1\", <a href=\"%2\">click here to open it</a>.")
-                                  .arg(fileName)
-                                  .arg(url.toString());
+        // No error, replace msgData with decrypted data
+        if (error == kNoError)
+            msgData = decrypted;
+    }
 
-                emit newMessage(name, message);
-            }
+    // Data is a message -> display it on the chat room
+    if(messageType == "Text")
+        emit newMessage(name, QString::fromUtf8(msgData));
+
+    // Data is a file -> save it to downloads and generate message
+    else if(messageType == "File") {
+        // Try to save the file
+        bool ok;
+        QString filePath = saveFile(fileName, msgData, &ok);
+        QUrl url = QUrl::fromLocalFile(filePath);
+
+        // File saved correctly, generate message with link to file
+        if(ok) {
+            QString message = tr("Sent file \"%1\", <a href=\"%2\">click here to open it</a>.")
+                              .arg(fileName)
+                              .arg(url.toString());
+
+            emit newMessage(name, message);
         }
     }
 }
