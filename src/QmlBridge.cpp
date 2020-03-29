@@ -60,7 +60,7 @@ static QByteArray GET_JSON_DATA(const QString& type,
    jsonObject.insert("Base64", QJsonValue(base64));
 
    // Return byte array
-   return QJsonDocument(jsonObject).toBinaryData();
+   return QJsonDocument(jsonObject).toJson(QJsonDocument::Compact);
 }
 
 QmlBridge::QmlBridge()
@@ -402,7 +402,7 @@ void QmlBridge::handleMessages(const QString& name, const QByteArray& data)
 
    // Decode LSB and obtain JSON document
    QByteArray jsonData = LSB::decodeData(data);
-   QJsonDocument document = QJsonDocument::fromBinaryData(jsonData);
+   QJsonDocument document = QJsonDocument::fromJson(jsonData);
 
    // Update the LSB image
    emit lsbImageChanged();

@@ -37,8 +37,7 @@ class P2P_Manager : public QObject
 {
       Q_OBJECT
 
-   public:
-      P2P_Manager(NetworkComms* comms);
+   public: P2P_Manager(NetworkComms* comms);
 
       QString userName() const;
       void startBroadcasting();

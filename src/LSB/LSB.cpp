@@ -35,6 +35,22 @@ static QImage SOURCE_IMAGE = QImage(0, 0, QImage::Format_RGB32);
 static QImage LSB_IMAGE = QImage(100, 100, QImage::Format_RGB32);
 static QImage LSB_IMAGE_DATA = QImage(100, 100, QImage::Format_RGB32);
 
+int set_bit(int num, int position, bool bit)
+{
+   int mask = 1 << position;
+
+   if(bit)
+      return num | mask;
+   else
+      return num & ~mask;
+}
+
+bool get_bit(int num, int position)
+{
+   bool bit = num & (1 << position);
+   return bit;
+}
+
 bool LSB::useGeneratedImages()
 {
    return USE_GENERATED_IMAGES;
@@ -118,7 +134,7 @@ QImage LSB::encodeData(const QByteArray& data)
    // Write data to image using LSB
    int bytesWritten = 0;
    int diagonalSize = qMin(LSB_IMAGE.width(), LSB_IMAGE.height());
-   for(int i = 0; i < diagonalSize; ++i) {
+   for(int i = 0; i < diagonalSize; i += 3) {
       // We have written all data, exit loop
       if(bytesWritten >= injection.length())
          break;
@@ -135,26 +151,25 @@ QImage LSB::encodeData(const QByteArray& data)
          bits[i] = ((1 << (i % 8)) & byte) >> (i % 8);
 
       // Write on LSBs of each byte of the image
-      QRgb lsbPixel1 = qRgb((qRed(pixel1)   & 0xFE) | bits[0],
-                            (qGreen(pixel1) & 0xFE) | bits[1],
-                            (qBlue(pixel1)  & 0xFE) | bits[2]);
-      QRgb lsbPixel2 = qRgb((qRed(pixel2)   & 0xFE) | bits[3],
-                            (qGreen(pixel2) & 0xFE) | bits[4],
-                            (qBlue(pixel2)  & 0xFE) | bits[5]);
-      QRgb lsbPixel3 = qRgb((qRed(pixel3)   & 0xFE) | bits[6],
-                            (qGreen(pixel3) & 0xFE) | bits[7],
-                            (qBlue(pixel3)));
+      QRgb lsbPixel1 = qRgb(set_bit(qRed(pixel1),   0, bits[0]),
+                            set_bit(qGreen(pixel1), 0, bits[1]),
+                            set_bit(qBlue(pixel1),  0, bits[2]));
+      QRgb lsbPixel2 = qRgb(set_bit(qRed(pixel2),   0, bits[3]),
+                            set_bit(qGreen(pixel2), 0, bits[4]),
+                            set_bit(qBlue(pixel2),  0, bits[5]));
+      QRgb lsbPixel3 = qRgb(set_bit(qRed(pixel3),   0, bits[6]),
+                            set_bit(qGreen(pixel3), 0, bits[7]),
+                            set_bit(qBlue(pixel3),  0, 1));
 
       // Update pixels of image
       LSB_IMAGE.setPixel(i + 0, i + 0, lsbPixel1);
-      LSB_IMAGE.setPixel(i + 1, i + 2, lsbPixel2);
+      LSB_IMAGE.setPixel(i + 1, i + 1, lsbPixel2);
       LSB_IMAGE.setPixel(i + 2, i + 2, lsbPixel3);
       LSB_IMAGE_DATA.setPixel(i + 0, i + 0, lsbPixel1);
-      LSB_IMAGE_DATA.setPixel(i + 1, i + 2, lsbPixel2);
+      LSB_IMAGE_DATA.setPixel(i + 1, i + 1, lsbPixel2);
       LSB_IMAGE_DATA.setPixel(i + 2, i + 2, lsbPixel3);
 
-      // Increment i & written bytes
-      i += 3;
+      // Increment written bytes
       ++bytesWritten;
    }
 
@@ -179,33 +194,52 @@ QByteArray LSB::decodeData(const QImage& image)
 
    // Decode data
    QByteArray data;
-   for(int i = 0; i < image.width(); ++i) {
-      for(int j = 0; j < image.height(); ++j) {
-         // Get pixel and byte
-         QRgb pixel = image.pixel(i, j);
-         char byte = static_cast<char>(qRed(pixel));
+   int diagonalSize = qMin(image.width(), image.height());
+   for(int i = 0; i < diagonalSize; i += 3) {
+      // Get pixels
+      QRgb pixel1 = image.pixel(i + 0, i + 0);
+      QRgb pixel2 = image.pixel(i + 1, i + 1);
+      QRgb pixel3 = image.pixel(i + 2, i + 2);
 
-         // Data length not calculated yet
-         if(dataLenght <= 0 && headerCount < 2) {
-            // Get start/end of header
-            if(byte == '$')
-               ++headerCount;
+      // Get individual bits
+      bool bits[8] = {
+         get_bit(qRed(pixel1),   0),
+         get_bit(qGreen(pixel1), 0),
+         get_bit(qBlue(pixel1),  0),
+         get_bit(qRed(pixel2),   0),
+         get_bit(qGreen(pixel2), 0),
+         get_bit(qBlue(pixel2),  0),
+         get_bit(qRed(pixel3),   0),
+         get_bit(qGreen(pixel3), 0)
+      };
 
-            // Append digit to length string
-            else if(byte >= '0' && byte <= '9')
-               lengthString.append(byte);
-         }
+      // Get byte value from bits
+      char byte = 0;
+      for(int i = 0; i < 8; ++i)
+         byte += (bits[i] << i);
 
-         // If header length is equal to two
-         else if(dataLenght <= 0 && headerCount == 2)
-            dataLenght = lengthString.toInt();
+      // Data length not calculated yet
+      if(dataLenght <= 0 && headerCount < 2) {
+         // Get start/end of header
+         if(byte == '$')
+            ++headerCount;
 
-         // Append to data
-         else if(i * image.height() + j < dataLenght)
-            data.append(byte);
-         else
-            break;
+         // Append digit to length string
+         else if(byte >= '0' && byte <= '9')
+            lengthString.append(byte);
       }
+
+      // If header length is equal to two
+      else if(dataLenght <= 0 && headerCount == 2) {
+         dataLenght = lengthString.toInt();
+         data.append(byte);
+      }
+
+      // Append to data
+      else if(data.length() < dataLenght)
+         data.append(byte);
+      else
+         break;
    }
 
    // Update current LSB image
@@ -214,9 +248,12 @@ QByteArray LSB::decodeData(const QImage& image)
    // Regenerate data image
    LSB_IMAGE_DATA = image;
    for(int i = 0; i < image.width(); ++i) {
+      if(i > 2 * dataLenght)
+         break;
+
       for(int j = 0; j < image.height(); ++j) {
          QRgb pixel = LSB_IMAGE_DATA.pixel(i, j);
-         LSB_IMAGE_DATA.setPixel(i, j, qRgb(qRed(pixel), 0, 0));
+         LSB_IMAGE_DATA.setPixel(i, j, i == j ? pixel : qRgb(0, 0, 0));
       }
    }
 

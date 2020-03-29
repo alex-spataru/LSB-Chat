@@ -45,6 +45,13 @@ ApplicationWindow {
     title: CAppName + " v" + CAppVersion
 
     //
+    // Background rectangle
+    //
+    background: Rectangle {
+        color: "#f4f4f4"
+    }
+
+    //
     // MainWindow Layout
     //
     ColumnLayout {
