@@ -28,7 +28,8 @@ LSB steganography works by replacing the least significant bit with bits of diff
 ### TODOs
 
 - [x] Implement networking module
-- [ ] Implement LSB module
+- [x] Implement LSB module
+- [ ] Implement crypto module
 - [ ] Implement C++/QML bridge class
 - [x] Implement user interface elements
 - [ ] Software testing
