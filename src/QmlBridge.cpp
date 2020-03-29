@@ -32,9 +32,9 @@
 #include <QDesktopServices>
 
 /*
- * Set maximum file size limit to 60 MB
+ * Set maximum transfer limit to 1 Kb (due to forced inefficient LSB alg.)
  */
-static qint64 FILE_SIZE_LIMIT = 60 * 1024 * 1024;
+static qint64 MAX_TRANSFER_SIZE = 1 * 1024;
 
 /**
  * @brief GET_JSON_DATA
@@ -130,7 +130,7 @@ void QmlBridge::sendFile()
    QByteArray fileData;
    if(file.open(QFile::ReadOnly)) {
       // File is too large, abort
-      if(file.size() > FILE_SIZE_LIMIT) {
+      if(file.size() > MAX_TRANSFER_SIZE) {
          QMessageBox::warning(Q_NULLPTR,
                               tr("File too large"),
                               tr("The file is too large to be sent, sorry"));
@@ -301,6 +301,14 @@ void QmlBridge::sendMessage(const QString& text)
    // Text is empty abort
    if(text.isEmpty())
       return;
+
+   // Check text size
+   if(text.length() > MAX_TRANSFER_SIZE) {
+      QMessageBox::warning(Q_NULLPTR,
+                           tr("Message too large"),
+                           tr("The message is too large to be sent, sorry"));
+      return;
+   }
 
    // Encrypt the text (if required) and encode it with Base64
    bool encryptionOk;

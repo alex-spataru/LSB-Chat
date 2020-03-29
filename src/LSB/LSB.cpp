@@ -78,10 +78,17 @@ QImage LSB::currentImageData()
 
 QImage LSB::encodeData(const QByteArray& data)
 {
+   // Append data size to start
+   QByteArray injection;
+   injection.append("$");
+   injection.append(QString::number(data.length()));
+   injection.append("$");
+   injection.append(data);
+
    // Reset images (generate random image case)
    if(useGeneratedImages() || (SOURCE_IMAGE.width() == 0 && SOURCE_IMAGE.height() == 0)) {
       // Resize image to data size
-      const int size = data.length() * 8 + 120;
+      const int size = injection.length() * 4;
       LSB_IMAGE = QImage(QSize(size, size), QImage::Format_RGB32);
       LSB_IMAGE_DATA = QImage(QSize(size, size), QImage::Format_RGB32);
 
@@ -108,20 +115,13 @@ QImage LSB::encodeData(const QByteArray& data)
             LSB_IMAGE_DATA.setPixel(i, j, qRgb(0, 0, 0));
    }
 
-   // Append data size to start
-   QByteArray injection;
-   injection.append("$");
-   injection.append(QString::number(data.length()));
-   injection.append("$");
-   injection.append(data);
-
    // Write data to image using LSB
    int bytesWritten = 0;
    int diagonalSize = qMin(LSB_IMAGE.width(), LSB_IMAGE.height());
    for(int i = 0; i < diagonalSize; ++i) {
-       // We have written all data, exit loop
-      if (bytesWritten >= injection.length())
-          break;
+      // We have written all data, exit loop
+      if(bytesWritten >= injection.length())
+         break;
 
       // Get byte & pixel value
       char byte = injection.at(bytesWritten);
@@ -131,8 +131,8 @@ QImage LSB::encodeData(const QByteArray& data)
 
       // Get individual bits
       int bits[8];
-      for (int i = 0; i < 8; ++i)
-          bits[i] = ((1 << (i % 8)) & byte) >> (i % 8);
+      for(int i = 0; i < 8; ++i)
+         bits[i] = ((1 << (i % 8)) & byte) >> (i % 8);
 
       // Write on LSBs of each byte of the image
       QRgb lsbPixel1 = qRgb((qRed(pixel1)   & 0xFE) | bits[0],

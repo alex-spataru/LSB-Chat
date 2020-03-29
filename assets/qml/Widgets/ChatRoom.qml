@@ -227,7 +227,7 @@ Item {
     TextField {
         id: lsbImage
 
-        height: sidebarSize + 48
+        height: sidebarSize + 129
         readOnly: true
         width: sidebarSize
 

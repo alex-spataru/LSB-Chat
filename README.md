@@ -29,12 +29,9 @@ For example, here is a comparison between an image that has been "touched" by th
 
 ![Screenshot](doc/LSB_Composite.png)
 
-And the corresponding "data only" image:
+For more clarity, below you can find the image with only the pixels that have been modified to acommodate data (check the diagonal line of the image):
 
 ![Screenshot](doc/LSB_Data.png)
-
-*Note:* check the leftmost part of both images. In this case, the LSB algorithm must be improved. For the moment, we write data only on the red pixels, but we do it byte-by-byte, not bit-by-bit.  
-
 
 ### TODOs
 
