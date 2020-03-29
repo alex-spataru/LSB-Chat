@@ -28,25 +28,12 @@ RowLayout {
     spacing: app.spacing
 
     //
-    // Define signals
-    //
-    signal attachClicked()
-    signal settingsClicked()
-    signal messageSent(var message)
-    signal cryptoClicked(var enabled)
-
-    //
     // Clear message text field when a message is sent
     //
-    onMessageSent: textField.clear()
-
-    //
-    // Settings button
-    //
-    Button {
-        onClicked: settingsClicked()
-        Layout.alignment: Qt.AlignVCenter
-        icon.source: "qrc:/icons/settings-24px.svg"
+    signal messageSent(var message)
+    onMessageSent: {
+        CBridge.sendMessage(message)
+        textField.clear()
     }
 
     //
@@ -54,7 +41,7 @@ RowLayout {
     //
     Button {
         Layout.alignment: Qt.AlignVCenter
-        onClicked: cryptoClicked(!CBridge.cryptoEnabled)
+        onClicked: CBridge.cryptoEnabled = !CBridge.cryptoEnabled
         icon.source: CBridge.cryptoEnabled ? "qrc:/icons/enhanced_encryption-24px.svg" :
                                              "qrc:/icons/no_encryption-24px.svg"
     }
@@ -84,7 +71,7 @@ RowLayout {
     // Attach button
     //
     Button {
-        onClicked: attachClicked()
+        onClicked: CBridge.sendFile()
         Layout.alignment: Qt.AlignVCenter
         icon.source: "qrc:/icons/attach_file-24px.svg"
     }

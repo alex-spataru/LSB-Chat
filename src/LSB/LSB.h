@@ -30,12 +30,18 @@
 class LSB
 {
    public:
+      static bool useGeneratedImages();
+      static void enableGeneratedImages(const bool enabled);
+      static void setSourceImage(const QImage& image);
+
       static QImage currentImageData();
       static QImage currentCompositeImage();
+
       static QImage encodeData(const QByteArray& data);
       static QByteArray decodeData(const QImage& image);
-      static QByteArray imageToBinaryData(const QImage& image);
       static QByteArray decodeData(const QByteArray& rawImageData);
+
+      static QByteArray imageToBinaryData(const QImage& image);
 };
 
 #endif

@@ -30,7 +30,7 @@ Item {
     //
     Component.onCompleted: CBridge.init()
 
-    property int sidebarSize: 256
+    property int sidebarSize: 346
     property string lsbImageUrl: "image://lsb/composite"
 
     //
@@ -77,7 +77,7 @@ Item {
         anchors {
             top: parent.top
             left: parent.left
-            right: peers.left
+            right: sidebar.left
             margins: app.spacing
             bottom: parent.bottom
         }
@@ -119,10 +119,10 @@ Item {
     }
 
     //
-    // Peer list
+    // Peer list and controls
     //
     TextField {
-        id: peers
+        id: sidebar
         readOnly: true
         width: sidebarSize
 
@@ -241,6 +241,16 @@ Item {
             anchors.fill: parent
             anchors.margins: app.spacing
 
+            //
+            // Spacer
+            //
+            Item {
+                height: 1
+            }
+
+            //
+            // Controls
+            //
             RowLayout {
                 spacing: app.spacing
                 Layout.fillWidth: true
@@ -278,8 +288,90 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                     icon.source: "qrc:/icons/save-24px.svg"
                 }
+
+                //
+                // Set gallery location
+                //
+                Button {
+                    icon.width: 24
+                    icon.height: 24
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    icon.source: "qrc:/icons/image_search-24px.svg"
+                    onClicked: CBridge.selectLsbImagesSourceDirectory()
+                }
+
+                //
+                // Clear chat
+                //
+                Button {
+                    icon.width: 24
+                    icon.height: 24
+                    Layout.fillWidth: true
+                    onClicked: chatText.text = ""
+                    Layout.alignment: Qt.AlignVCenter
+                    icon.source: "qrc:/icons/delete-24px.svg"
+                }
             }
 
+            //
+            // Spacer
+            //
+            Item {
+                height: 1
+            }
+
+            //
+            // Password controls
+            //
+            RowLayout {
+                spacing: app.spacing
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+
+                TextField {
+                    id: pwTextfield
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    placeholderText: qsTr("Enter a password") + "..."
+                    echoMode: visibleBt.checked ? TextInput.Normal : TextInput.Password
+                }
+
+                Button {
+                    id: visibleBt
+                    checkable: true
+                    Layout.alignment: Qt.AlignVCenter
+                    icon.source: checked ? "qrc:/icons/visibility_off-24px.svg" :
+                                           "qrc:/icons/visibility-24px.svg"
+                }
+            }
+
+            //
+            // Spacer
+            //
+            Item {
+                height: 1
+            }
+
+            //
+            // Checkbox
+            //
+            CheckBox {
+                checked: true
+                text: qsTr("Generate LSB images automatically")
+                onCheckedChanged: CBridge.enableGeneratedImages(checked)
+            }
+
+            //
+            // Spacer
+            //
+            Item {
+                height: 1
+            }
+
+            //
+            // Image display
+            //
             Image {
                 Layout.fillWidth: true
                 Layout.fillHeight: true

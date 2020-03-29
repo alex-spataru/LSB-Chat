@@ -19,14 +19,10 @@
         <file>icons/visibility_off-24px.svg</file>
         <file>icons/visibility-24px.svg</file>
         <file>icons/image_search-24px.svg</file>
-        <file>icons/gallery.svg</file>
-        <file>icons/compare.svg</file>
-        <file>icons/folder.svg</file>
-        <file>icons/password.svg</file>
         <file>icons/enhanced_encryption-24px.svg</file>
-        <file>icons/file_copy-24px.svg</file>
         <file>icons/save-24px.svg</file>
         <file>icons/grain-24px.svg</file>
         <file>icons/show_chart-24px.svg</file>
+        <file>icons/delete-24px.svg</file>
     </qresource>
 </RCC>

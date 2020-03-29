@@ -35,17 +35,6 @@ Item {
     //
     MainWindow {
         id: mainWindow
-        onAttachClicked: CBridge.sendFile()
         Component.onCompleted: mainWindow.show()
-        onMessageSent: CBridge.sendMessage(message)
-        onSettingsClicked: preferences.showNormal()
-        onCryptoClicked: CBridge.setCryptoEnabled(enabled)
-    }
-
-    //
-    // Preferences window
-    //
-    PreferencesWindow {
-        id: preferences
     }
 }

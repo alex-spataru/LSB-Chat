@@ -56,8 +56,6 @@ HEADERS += \
     src/Comms/P2P_Manager.h \
     src/Comms/TCP_Listener.h \
     src/LSB/Crypto.h \
-    src/LSB/LSB-Reader.h \
-    src/LSB/LSB-Writer.h \
     src/LSB/LSB.h \
     src/QmlBridge.h
 
@@ -67,8 +65,6 @@ SOURCES += \
     src/Comms/P2P_Manager.cpp \
     src/Comms/TCP_Listener.cpp \
     src/LSB/Crypto.cpp \
-    src/LSB/LSB-Reader.cpp \
-    src/LSB/LSB-Writer.cpp \
     src/LSB/LSB.cpp \
     src/QmlBridge.cpp \
     src/main.cpp

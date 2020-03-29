@@ -72,22 +72,18 @@ class LsbImageProvider : public QQuickImageProvider
 class QmlBridge : public QObject
 {
       Q_OBJECT Q_PROPERTY(QString userName READ getUserName CONSTANT)
-      Q_PROPERTY(QStringList sortTypes READ getSortTypes CONSTANT)
       Q_PROPERTY(QStringList peers READ getPeers NOTIFY peerCountChanged)
-      Q_PROPERTY(QStringList lsbImagePaths READ getLsbImagePaths NOTIFY lsbDbUpdated)
-      Q_PROPERTY(QStringList lsbImageDates READ getLsbImageDates NOTIFY lsbDbUpdated)
-      Q_PROPERTY(QStringList lsbImageAuthorrs READ getLsbImageAuthors NOTIFY lsbDbUpdated)
       Q_PROPERTY(QString password READ getPassword WRITE setPassword NOTIFY passwordChanged)
       Q_PROPERTY(bool cryptoEnabled READ getCryptoEnabled WRITE setCryptoEnabled NOTIFY
                  cryptoEnabledChanged)
 
    signals:
-      void lsbDbUpdated();
       void lsbImageChanged();
       void chatTextUpdated();
       void passwordChanged();
       void peerCountChanged();
       void cryptoEnabledChanged();
+      void lsbImageSourcesChanged();
       void newParticipant(const QString& name);
       void participantLeft(const QString& name);
       void newMessage(const QString& user, const QString& message);
@@ -96,28 +92,21 @@ class QmlBridge : public QObject
       QmlBridge();
 
       QStringList getPeers() const;
-      QStringList getSortTypes() const;
-      QStringList getLsbImagePaths() const;
-      QStringList getLsbImageDates() const;
-      QStringList getLsbImageAuthors() const;
-
       QString getUserName() const;
       QString getPassword() const;
       bool getCryptoEnabled() const;
+      QStringList availableImages() const;
       QString getLsbImagesDirectory() const;
 
    public slots:
       void init();
       void sendFile();
       void saveImages();
-      void updateLsbImageDb();
-      void openLsbImagesDirectory();
-      void changeSortType(const int type);
+      void selectLsbImagesSourceDirectory();
       void sendMessage(const QString& text);
       void setPassword(const QString& password);
       void setCryptoEnabled(const bool enabled);
-      void setLsbSearchQuery(const QString& query);
-      void openMessage(const QString& filePath, const QString& password);
+      void enableGeneratedImages(const bool enabled);
 
    private slots:
       void handleNewParticipant(const QString& name);
@@ -132,9 +121,6 @@ class QmlBridge : public QObject
       QString m_password;
       QStringList m_peers;
       bool m_cryptoEnabled;
-      QStringList m_lsbImagePaths;
-      QStringList m_lsbImageDates;
-      QStringList m_lsbImageAuthors;
-
       NetworkComms m_comms;
+      QStringList m_availableImages;
 };

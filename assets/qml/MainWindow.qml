@@ -34,30 +34,15 @@ ApplicationWindow {
     id: mw
 
     //
-    // Configure signals
-    //
-    signal attachClicked()
-    signal settingsClicked()
-    signal messageSent(var message)
-    signal cryptoClicked(var enabled)
-
-    //
     // Window geometry
     //
-    minimumWidth: 640
-    minimumHeight: 480
+    minimumWidth: 800
+    minimumHeight: 640
 
     //
     // Window title
     //
     title: CAppName + " v" + CAppVersion
-
-    //
-    // Background widget
-    //
-    background: Rectangle {
-        color: "#ededed"
-    }
 
     //
     // MainWindow Layout
@@ -77,10 +62,6 @@ ApplicationWindow {
 
         Widgets.ChatTextBox {
             Layout.fillWidth: true
-            onAttachClicked: mw.attachClicked()
-            onMessageSent: mw.messageSent(message)
-            onSettingsClicked: mw.settingsClicked()
-            onCryptoClicked: mw.cryptoClicked(enabled)
         }
     }
 }

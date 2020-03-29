@@ -28,12 +28,13 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QJsonObject>
+#include <QRandomGenerator>
 #include <QDesktopServices>
 
 /*
- * Set maximum file size limit to 5 MB
+ * Set maximum file size limit to 60 MB
  */
-static qint64 FILE_SIZE_LIMIT = 5 * 1024 * 1024;
+static qint64 FILE_SIZE_LIMIT = 60 * 1024 * 1024;
 
 /**
  * @brief GET_JSON_DATA
@@ -83,33 +84,6 @@ QStringList QmlBridge::getPeers() const
    return m_peers;
 }
 
-QStringList QmlBridge::getSortTypes() const
-{
-   QStringList list = {
-      tr("Newest First"),
-      tr("Oldest First"),
-      tr("Author Name"),
-      tr("Image Size")
-   };
-
-   return list;
-}
-
-QStringList QmlBridge::getLsbImagePaths() const
-{
-   return m_lsbImagePaths;
-}
-
-QStringList QmlBridge::getLsbImageDates() const
-{
-   return m_lsbImageDates;
-}
-
-QStringList QmlBridge::getLsbImageAuthors() const
-{
-   return m_lsbImageAuthors;
-}
-
 QString QmlBridge::getUserName() const
 {
    return m_comms.username();
@@ -123,6 +97,11 @@ QString QmlBridge::getPassword() const
 bool QmlBridge::getCryptoEnabled() const
 {
    return m_cryptoEnabled;
+}
+
+QStringList QmlBridge::availableImages() const
+{
+   return m_availableImages;
 }
 
 QString QmlBridge::getLsbImagesDirectory() const
@@ -185,6 +164,27 @@ void QmlBridge::sendFile()
    if(!allowSendingData)
       return;
 
+   // Assign random image to LSB module
+   if(!LSB::useGeneratedImages()) {
+      // Select any image from image list
+      if(availableImages().count() > 0) {
+         QImage image;
+         int randomIndex = QRandomGenerator::system()->bounded(0, availableImages().count() - 1);
+         image.load(availableImages().at(randomIndex));
+         LSB::setSourceImage(image);
+      }
+
+      // No images available, abort
+      else {
+         QMessageBox::warning(Q_NULLPTR,
+                              tr("No LSB source image available"),
+                              tr("There are no images available as source for the LSB " \
+                                 "procedure. Please select an appropiate directory or " \
+                                 "enable automatic LSB image generation."));
+         return;
+      }
+   }
+
    // Generate JSON binary data, load data into image and send image data
    QByteArray json = GET_JSON_DATA("File",fileName, base64, encryptionOk);
    QImage lsbImage = LSB::encodeData(json);
@@ -238,19 +238,62 @@ void QmlBridge::saveImages()
    QDesktopServices::openUrl(compositeUrl);
 }
 
-void QmlBridge::updateLsbImageDb()
+void QmlBridge::selectLsbImagesSourceDirectory()
 {
+   // Get folder from where to load images
+   const QString path = QFileDialog::getExistingDirectory(Q_NULLPTR,
+                        tr("Select Directory for LSB source images"),
+                        QDir::homePath());
 
-}
+   // File path empty, abort
+   if(path.isEmpty())
+      return;
 
-void QmlBridge::openLsbImagesDirectory()
-{
+   // Clear image list
+   m_availableImages.clear();
 
-}
+   // Set file extension filter
+   QStringList filter = {
+      "*.jpg",
+      "*.jpeg",
+      "*.png",
+      "*.bmp",
+      "*.JPG",
+      "*.JPEG",
+      "*.PNG",
+      "*.BMP",
+   };
 
-void QmlBridge::changeSortType(const int type)
-{
+   // Search for images inside the directory
+   QDir dir(path);
+   m_availableImages = dir.entryList(filter,QDir::Files);
 
+   // No images where found
+   if(availableImages().count() <= 0) {
+      QMessageBox::warning(Q_NULLPTR,
+                           tr("No LSB source image available"),
+                           tr("There are no images available as source for the LSB " \
+                              "procedure. Please select an appropiate directory or " \
+                              "enable automatic LSB image generation."));
+      selectLsbImagesSourceDirectory();
+      return;
+   }
+
+   // Preprend path to every item in the list
+   for(int i = 0; i < availableImages().count(); ++i) {
+      QString name = availableImages().at(i);
+      m_availableImages.replace(i, dir.filePath(name));
+   }
+
+   // Update UI
+   emit lsbImageSourcesChanged();
+
+   // Set random LSB image
+   QImage image;
+   int randomIndex = QRandomGenerator::system()->bounded(0, availableImages().count() - 1);
+   image.load(availableImages().at(randomIndex));
+   LSB::setSourceImage(image);
+   emit lsbImageChanged();
 }
 
 void QmlBridge::sendMessage(const QString& text)
@@ -267,6 +310,27 @@ void QmlBridge::sendMessage(const QString& text)
    // Abort if user denied sending data
    if(!allowSendingData)
       return;
+
+   // Assign random image to LSB module
+   if(!LSB::useGeneratedImages()) {
+      // Select any image from image list
+      if(availableImages().count() > 0) {
+         QImage image;
+         int randomIndex = QRandomGenerator::system()->bounded(0, availableImages().count() - 1);
+         image.load(availableImages().at(randomIndex));
+         LSB::setSourceImage(image);
+      }
+
+      // No images available, abort
+      else {
+         QMessageBox::warning(Q_NULLPTR,
+                              tr("No LSB source image available"),
+                              tr("There are no images available as source for the LSB " \
+                                 "procedure. Please select an appropiate directory or " \
+                                 "enable automatic LSB image generation."));
+         return;
+      }
+   }
 
    // Generate JSON binary data, load data into image and send image data
    QByteArray json = GET_JSON_DATA("Text", "", base64, encryptionOk);
@@ -290,15 +354,20 @@ void QmlBridge::setCryptoEnabled(const bool enabled)
    emit cryptoEnabledChanged();
 }
 
-void QmlBridge::setLsbSearchQuery(const QString& query)
+void QmlBridge::enableGeneratedImages(const bool enabled)
 {
+   LSB::enableGeneratedImages(enabled);
 
-}
+   if(!enabled) {
+      if(availableImages().count() > 0) {
+         QImage image;
+         int randomIndex = QRandomGenerator::system()->bounded(0, availableImages().count() - 1);
+         image.load(availableImages().at(randomIndex));
+         LSB::setSourceImage(image);
+      }
+   }
 
-void QmlBridge::openMessage(const QString& filePath, const QString& password)
-{
-   if(filePath.isEmpty())
-      return;
+   emit lsbImageChanged();
 }
 
 void QmlBridge::handleNewParticipant(const QString& name)
