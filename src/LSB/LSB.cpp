@@ -166,14 +166,14 @@ QImage LSB::encodeData(const QByteArray& data)
 
         // Write on LSBs of each byte of the image
         QRgb lsbPixel1 = qRgb(set_bit(qRed(pixel1),   0, bits[0]),
-                set_bit(qGreen(pixel1), 0, bits[1]),
-                set_bit(qBlue(pixel1),  0, bits[2]));
+                              set_bit(qGreen(pixel1), 0, bits[1]),
+                              set_bit(qBlue(pixel1),  0, bits[2]));
         QRgb lsbPixel2 = qRgb(set_bit(qRed(pixel2),   0, bits[3]),
-                set_bit(qGreen(pixel2), 0, bits[4]),
-                set_bit(qBlue(pixel2),  0, bits[5]));
+                              set_bit(qGreen(pixel2), 0, bits[4]),
+                              set_bit(qBlue(pixel2),  0, bits[5]));
         QRgb lsbPixel3 = qRgb(set_bit(qRed(pixel3),   0, bits[6]),
-                set_bit(qGreen(pixel3), 0, bits[7]),
-                set_bit(qBlue(pixel3),  0, 1));
+                              set_bit(qGreen(pixel3), 0, bits[7]),
+                              set_bit(qBlue(pixel3),  0, 1));
 
         // Update pixels of image
         LSB_IMAGE.setPixel(i + 0, i + 0, lsbPixel1);

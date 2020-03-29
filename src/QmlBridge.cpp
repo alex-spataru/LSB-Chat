@@ -172,8 +172,8 @@ void QmlBridge::sendFile()
     // Generate message
     QUrl url = QUrl::fromLocalFile(path);
     QString message = tr("Sent file \"%1\", <a href=\"%2\">click here to open it</a>.")
-            .arg(fileName)
-            .arg(url.toString());
+                      .arg(fileName)
+                      .arg(url.toString());
 
     // Emit signal
     emit lsbImageChanged();
@@ -184,8 +184,8 @@ void QmlBridge::saveImages()
 {
     // Get folder where to save images
     const QString path = QFileDialog::getExistingDirectory(Q_NULLPTR,
-                                                           tr("Select Directory to Save Files"),
-                                                           QDir::homePath());
+                         tr("Select Directory to Save Files"),
+                         QDir::homePath());
 
     // File path empty, abort
     if(path.isEmpty())
@@ -221,9 +221,9 @@ void QmlBridge::selectLsbImageSource()
 {
     // Select image
     const QString filePath = QFileDialog::getOpenFileName(Q_NULLPTR,
-                                                          tr("Select Image"),
-                                                          QDir::homePath(),
-                                                          tr("Images (*.png *.xpm *.jpg *.jpeg)"));
+                             tr("Select Image"),
+                             QDir::homePath(),
+                             tr("Images (*.png *.xpm *.jpg *.jpeg)"));
 
     // File path empty, abort
     if(filePath.isEmpty())
@@ -231,8 +231,7 @@ void QmlBridge::selectLsbImageSource()
 
     // Change user image
     QImage image;
-    if (image.load(filePath))
-    {
+    if (image.load(filePath)) {
         m_userImage = image;
         LSB::setSourceImage(userImage());
         enableGeneratedImages(false);
@@ -354,8 +353,8 @@ void QmlBridge::handleMessages(const QString& name, const QByteArray& data)
             // File saved correctly, generate message with link to file
             if(ok) {
                 QString message = tr("Sent file \"%1\", <a href=\"%2\">click here to open it</a>.")
-                        .arg(fileName)
-                        .arg(url.toString());
+                                  .arg(fileName)
+                                  .arg(url.toString());
 
                 emit newMessage(name, message);
             }

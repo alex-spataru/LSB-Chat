@@ -32,31 +32,31 @@
 class P2P_Manager;
 class NetworkComms : public QObject
 {
-      Q_OBJECT
+    Q_OBJECT
 
-   signals:
-      void newParticipant(const QString& username);
-      void participantLeft(const QString& username);
-      void newMessage(const QString& from, const QByteArray& data);
+signals:
+    void newParticipant(const QString& username);
+    void participantLeft(const QString& username);
+    void newMessage(const QString& from, const QByteArray& data);
 
-   public:
-      NetworkComms();
+public:
+    NetworkComms();
 
-      QString username() const;
-      void sendBinaryData(const QByteArray& data);
-      bool hasConnection(const QHostAddress& senderIp, int senderPort = -1) const;
+    QString username() const;
+    void sendBinaryData(const QByteArray& data);
+    bool hasConnection(const QHostAddress& senderIp, int senderPort = -1) const;
 
-   private slots:
-      void readyForUse();
-      void disconnected();
-      void newConnection(P2P_Connection* connection);
-      void removeConnection(P2P_Connection* connection);
-      void connectionError(QAbstractSocket::SocketError error);
+private slots:
+    void readyForUse();
+    void disconnected();
+    void newConnection(P2P_Connection* connection);
+    void removeConnection(P2P_Connection* connection);
+    void connectionError(QAbstractSocket::SocketError error);
 
-   private:
-      P2P_Manager* m_manager;
-      TCP_Listener m_listener;
-      QMultiHash<QHostAddress, P2P_Connection*> m_peers;
+private:
+    P2P_Manager* m_manager;
+    TCP_Listener m_listener;
+    QMultiHash<QHostAddress, P2P_Connection*> m_peers;
 };
 
 #endif

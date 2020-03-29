@@ -26,16 +26,16 @@
 #include <QByteArray>
 
 typedef enum {
-   kPasswordEmpty,
-   kNoError,
-   kUnknownError
+    kPasswordEmpty,
+    kNoError,
+    kUnknownError
 } CryptoError;
 
 class Crypto
 {
-   public:
-      static QByteArray encryptData(const QByteArray& data, const QByteArray& key, CryptoError* error);
-      static QByteArray decryptData(const QByteArray& data, const QByteArray& key, CryptoError* error);
+public:
+    static QByteArray encryptData(const QByteArray& data, const QByteArray& key, CryptoError* error);
+    static QByteArray decryptData(const QByteArray& data, const QByteArray& key, CryptoError* error);
 };
 
 #endif

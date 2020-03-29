@@ -34,59 +34,59 @@
 
 class P2P_Connection : public QTcpSocket
 {
-      Q_OBJECT
+    Q_OBJECT
 
-   signals:
-      void readyForUse();
-      void newMessage(const QString& from, const QByteArray& message);
+signals:
+    void readyForUse();
+    void newMessage(const QString& from, const QByteArray& message);
 
-   public:
-      enum ConnectionState {
-         WaitingForGreeting,
-         ReadingGreeting,
-         ReadyForUse
-      };
+public:
+    enum ConnectionState {
+        WaitingForGreeting,
+        ReadingGreeting,
+        ReadyForUse
+    };
 
-      enum DataType {
-         BinaryData,
-         Ping,
-         Pong,
-         Greeting,
-         Undefined
-      };
+    enum DataType {
+        BinaryData,
+        Ping,
+        Pong,
+        Greeting,
+        Undefined
+    };
 
-      P2P_Connection(QObject* parent = Q_NULLPTR);
-      P2P_Connection(qintptr socketDescriptor, QObject* parent = Q_NULLPTR);
-      ~P2P_Connection() override;
+    P2P_Connection(QObject* parent = Q_NULLPTR);
+    P2P_Connection(qintptr socketDescriptor, QObject* parent = Q_NULLPTR);
+    ~P2P_Connection() override;
 
-      QString name();
-      void setGreetingMessage(const QString& message);
-      bool sendBinaryData(const QByteArray& data);
+    QString name();
+    void setGreetingMessage(const QString& message);
+    bool sendBinaryData(const QByteArray& data);
 
-   protected:
-      void timerEvent(QTimerEvent* event) override;
+protected:
+    void timerEvent(QTimerEvent* event) override;
 
-   private slots:
-      void processReadyRead();
-      void sendPing();
-      void sendGreetingMessage();
+private slots:
+    void processReadyRead();
+    void sendPing();
+    void sendGreetingMessage();
 
-   private:
-      void processData();
-      void processGreeting();
+private:
+    void processData();
+    void processGreeting();
 
-   private:
-      QString m_username;
-      QTimer m_pingTimer;
-      QByteArray m_buffer;
-      int m_transferTimerId;
-      QString m_greetingMessage;
-      QElapsedTimer m_pongTimer;
-      DataType m_currentDataType;
-      bool m_greetingMessageSent;
-      QCborStreamReader m_reader;
-      QCborStreamWriter m_writer;
-      ConnectionState m_connectionState;
+private:
+    QString m_username;
+    QTimer m_pingTimer;
+    QByteArray m_buffer;
+    int m_transferTimerId;
+    QString m_greetingMessage;
+    QElapsedTimer m_pongTimer;
+    DataType m_currentDataType;
+    bool m_greetingMessageSent;
+    QCborStreamReader m_reader;
+    QCborStreamWriter m_writer;
+    ConnectionState m_connectionState;
 };
 
 #endif

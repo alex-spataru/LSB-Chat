@@ -4,12 +4,9 @@
 #              all the source code of the project.
 
 # Style and format the source code recursively
-astyle --style=kr \
-       --indent=spaces=3 \
-       --indent-switches --indent-modifiers --indent-classes --indent-cases \
+astyle --style=linux \
        --align-pointer=type --align-reference=type \
        --attach-return-type-decl --attach-return-type \
-       --unpad-paren \
        --indent-preproc-block --indent-preproc-define --indent-col1-comments \
        --remove-brackets \
        --convert-tabs \

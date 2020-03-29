@@ -31,7 +31,7 @@
  */
 TCP_Listener::TCP_Listener(QObject* parent) : QTcpServer(parent)
 {
-   listen(QHostAddress::Any);
+    listen(QHostAddress::Any);
 }
 
 /**
@@ -42,6 +42,6 @@ TCP_Listener::TCP_Listener(QObject* parent) : QTcpServer(parent)
  */
 void TCP_Listener::incomingConnection(qintptr socketDescriptor)
 {
-   P2P_Connection* connection = new P2P_Connection(socketDescriptor, this);
-   emit newConnection(connection);
+    P2P_Connection* connection = new P2P_Connection(socketDescriptor, this);
+    emit newConnection(connection);
 }
