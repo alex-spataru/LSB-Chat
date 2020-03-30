@@ -1,25 +1,14 @@
 <RCC>
     <qresource prefix="/">
-        <file>qml/AboutWindow.qml</file>
         <file>qml/main.qml</file>
         <file>qml/MainWindow.qml</file>
-        <file>qml/PreferencesWindow.qml</file>
         <file>qml/Widgets/ChatRoom.qml</file>
         <file>qml/Widgets/ChatTextBox.qml</file>
         <file>icons/account_circle-24px.svg</file>
         <file>icons/attach_file-24px.svg</file>
-        <file>icons/no_encryption-24px.svg</file>
-        <file>icons/send-24px.svg</file>
-        <file>icons/settings-24px.svg</file>
-        <file>logo/logo-64px.png</file>
-        <file>logo/logo-128px.png</file>
-        <file>logo/logo-256px.png</file>
-        <file>logo/logo-512px.png</file>
-        <file>logo/logo-1024px.png</file>
         <file>icons/visibility_off-24px.svg</file>
         <file>icons/visibility-24px.svg</file>
         <file>icons/image_search-24px.svg</file>
-        <file>icons/enhanced_encryption-24px.svg</file>
         <file>icons/save-24px.svg</file>
         <file>icons/grain-24px.svg</file>
         <file>icons/show_chart-24px.svg</file>

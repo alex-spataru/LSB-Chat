@@ -73,9 +73,7 @@ RESOURCES += \
     assets/assets.qrc
 
 DISTFILES += \
-    assets/qml/AboutWindow.qml \
     assets/qml/MainWindow.qml \
-    assets/qml/PreferencesWindow.qml \
     assets/qml/Widgets/ChatLog.qml \
     assets/qml/Widgets/ChatRoom.qml \
     assets/qml/Widgets/ChatTextBox.qml \
