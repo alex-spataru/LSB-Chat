@@ -38,10 +38,11 @@ GroupBox {
             if (user == CBridge.userName)
                 color = "#ff0088"
 
+            user = "<b>" + user + "</b>"
             if (encrypted)
-                user = user + " (" + qsTr("Encrypted Message") + ")"
+                user = user + " <i>(" + qsTr("Encrypted") + ")</i>"
 
-            chatView.appendText("<b>" + user + "</b>", color)
+            chatView.appendText(user, color)
             chatView.appendText("&rarr;&nbsp;" + message, "#aaa")
         }
 

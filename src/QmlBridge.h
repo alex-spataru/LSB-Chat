@@ -22,8 +22,7 @@
 
 #include <QFont>
 #include <QObject>
-#include <QPainter>
-#include <QFontMetrics>
+#include <QElapsedTimer>
 #include <QQuickImageProvider>
 
 #include "LSB/LSB.h"
@@ -86,6 +85,7 @@ private:
     QStringList m_peers;
     bool m_cryptoEnabled;
     NetworkComms m_comms;
+    QElapsedTimer m_elapsedTimer;
     QStringList m_availableImages;
 };
 
@@ -99,32 +99,18 @@ public:
 
     QPixmap requestPixmap(const QString& id, QSize* size, const QSize& requestedSize) override
     {
-        Q_UNUSED(requestedSize)
+        Q_UNUSED(size)
 
         // Show composite image
         if(id == "composite")
-            return QPixmap::fromImage(LSB::currentCompositeImage());
+            return QPixmap::fromImage(LSB::currentCompositeImage()).scaled(requestedSize);
 
         // Show LSB data image
         else if(id == "data")
-            return QPixmap::fromImage(LSB::currentImageData());
+            return QPixmap::fromImage(LSB::currentImageData()).scaled(requestedSize);
 
-        // Generate pixmap with id as text
-        else {
-            QPixmap pixmap(size->width(), size->height());
-            QPainter painter(&pixmap);
-
-            // Set text font
-            QFont font("Arial", size->height() / 18, QFont::Bold);
-            painter.setFont(font);
-            painter.setPen(Qt::white);
-
-            // Draw text
-            painter.drawText(QRectF(0, 0, size->width(), size->height()),
-                             Qt::AlignCenter, "No valid image");
-
-            // Return obtained pixmap
-            return pixmap;
-        }
+        // Generate empty pixmap
+        QPixmap pixmap(requestedSize);
+        return pixmap;
     }
 };

@@ -262,11 +262,12 @@ GroupBox {
             Image {
                 id: image
                 cache: false
-                smooth: true
+                smooth: false
                 anchors.margins: 2
-                asynchronous: true
+                asynchronous: false
                 source: lsbImageUrl
                 anchors.fill: parent
+                sourceSize: Qt.size(imageSize, imageSize)
                 fillMode: Image.PreserveAspectCrop
 
                 Connections {

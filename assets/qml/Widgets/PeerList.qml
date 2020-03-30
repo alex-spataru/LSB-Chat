@@ -72,12 +72,10 @@ GroupBox {
                 spacing: app.spacing / 2
                 width: peerList.width - 4 * app.spacing
 
-                property bool blinkingDot: false
-
                 Connections {
                     target: CBridge
                     onNewMessage: {
-                        blinkingDot = (user === modelData)
+                        dot.opacity = (user === modelData) ? 0.80 : 0
                         timer.start()
                     }
                 }
@@ -85,19 +83,7 @@ GroupBox {
                 Timer {
                     id: timer
                     interval: 200
-                    onTriggered: {
-                        if (blinkingDot) {
-                            if (dot.opacity > 0)
-                                dot.opacity = 0
-                            else
-                                dot.opacity = 1
-
-                            start()
-                        }
-
-                        else
-                            dot.opacity = 0
-                    }
+                    onTriggered: dot.opacity = 0
                 }
 
                 RoundButton {

@@ -181,16 +181,15 @@ QImage LSB::generateImage(const int size, const bool random)
     int b = 0;
 
     // Fill image pixels
-    for (int i = 0; i < image.height(); ++i) {
-        for (int j = 0; j < image.width(); ++j) {
-            if (random && ((j % 20 == 0) || (i % 20 == 0))) {
-                r = generator.bounded(0, 3) * 100;
-                g = generator.bounded(0, 2) * 100;
-                b = generator.bounded(0, 3) * 100;
-            }
-
-            image.setPixel(j, i, qRgb(r, g, b));
+    for (int i = 0; i < image.width(); ++i) {
+        if (random) {
+            r = generator.bounded(0x20, 0xdd);
+            g = generator.bounded(0x20, 0x90);
+            b = generator.bounded(0x20, 0xff);
         }
+
+        for (int j = 0; j < image.height(); ++j)
+            image.setPixel(j, i, qRgb(r, g, b));
     }
 
     // Return image
@@ -222,7 +221,7 @@ QImage LSB::encodeData(const QByteArray& data)
 
     // Reset images (generate random image case)
     if(useGeneratedImages() || (SOURCE_IMAGE.width() == 0 && SOURCE_IMAGE.height() == 0)) {
-        const int size = qMin(10 * 10000.0, qMax(injection.length() * 3.2, 1000.0));
+        const int size = qMin(10 * 10000.0, injection.length() * 3.2);
         IMG_COMPOSITE = generateImage(size, true);
         IMG_DIFFERENTIAL = generateImage(size, false);
     }
