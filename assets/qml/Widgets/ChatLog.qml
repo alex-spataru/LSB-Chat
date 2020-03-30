@@ -34,8 +34,12 @@ GroupBox {
 
         onNewMessage: {
             var color = Qt.lighter("#d57d25")
+
             if (user == CBridge.userName)
                 color = "#ff0088"
+
+            if (encrypted)
+                user = user + " (" + qsTr("Encrypted Message") + ")"
 
             chatView.appendText("<b>" + user + "</b>", color)
             chatView.appendText("&rarr;&nbsp;" + message, "#aaa")
@@ -93,7 +97,7 @@ GroupBox {
             onLinkActivated: Qt.openUrlExternally(link)
 
             text: "<font color=#00ff00>" +
-                  qsTr("<b>Welcome</b>, please note that <u>maximum file size is 10 KB</u>.") + "</font><br/><br/>"
+                  qsTr("<b>Welcome</b>, please note that <u>maximum file size is 1 KB</u>.") + "</font><br/><br/>"
 
             font.family: {
                 switch (Qt.platform.os.toString()) {

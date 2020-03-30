@@ -32,9 +32,9 @@
 #include <QDesktopServices>
 
 /*
- * Set maximum transfer limit to 50 Kb
+ * Set maximum transfer limit to 1 Kb
  */
-static qint64 MAX_TRANSFER_SIZE = 50 * 1024;
+static qint64 MAX_TRANSFER_SIZE = 1 * 1024;
 
 /**
  * @brief GET_JSON_DATA
@@ -48,13 +48,14 @@ static qint64 MAX_TRANSFER_SIZE = 50 * 1024;
  */
 static QByteArray GET_JSON_DATA(const QString& type,
                                 const QString& filename,
-                                const QString& base64,
-                                const bool encrypted)
+                                const QByteArray& data)
 {
+    // Create base64 string
+    QString base64 = QString::fromUtf8(data.toBase64());
+
     // Generate JSON object
     QJsonObject jsonObject;
     jsonObject.insert("MessageType", type);
-    jsonObject.insert("Encrypted", QJsonValue(encrypted));
     jsonObject.insert("Length", QJsonValue(base64.length()));
     jsonObject.insert("FileName", filename);
     jsonObject.insert("Base64", QJsonValue(base64));
@@ -63,6 +64,11 @@ static QByteArray GET_JSON_DATA(const QString& type,
     return QJsonDocument(jsonObject).toJson(QJsonDocument::Compact);
 }
 
+/**
+ * @brief QmlBridge::QmlBridge
+ *
+ * Connects signals/slots of the UI with the rest of the application modules
+ */
 QmlBridge::QmlBridge()
 {
     setCryptoEnabled(false);
@@ -78,42 +84,92 @@ QmlBridge::QmlBridge()
             this,       SLOT(handleParticipantLeft(QString)));
 }
 
+/**
+ * @brief QmlBridge::getPeers
+ * @return
+ *
+ * Returns a list with the names of the peers connected to the computer
+ */
 QStringList QmlBridge::getPeers() const
 {
     return m_peers;
 }
 
+/**
+ * @brief QmlBridge::userImage
+ * @return
+ *
+ * Returns the image loaded by the user to be used as source image for LSB algorithm
+ */
 QImage QmlBridge::userImage() const
 {
     return m_userImage;
 }
 
+/**
+ * @brief QmlBridge::getUserName
+ * @return
+ *
+ * Returns the user name obtained from the operating system
+ */
 QString QmlBridge::getUserName() const
 {
     return m_comms.username();
 }
 
+/**
+ * @brief QmlBridge::getPassword
+ * @return
+ *
+ * Returns the password set by the user
+ */
 QString QmlBridge::getPassword() const
 {
     return m_password;
 }
 
+/**
+ * @brief QmlBridge::getCryptoEnabled
+ * @return
+ *
+ * Returns @c true if crypto module shall be used to write messages
+ */
 bool QmlBridge::getCryptoEnabled() const
 {
     return m_cryptoEnabled;
 }
 
+/**
+ * @brief QmlBridge::getGenerateImagesEnabled
+ * @return
+ *
+ * Returns @c true if the LSB module will auto-generate an image for each message sent
+ */
 bool QmlBridge::getGenerateImagesEnabled() const
 {
     return LSB::useGeneratedImages();
 }
 
+/**
+ * @brief QmlBridge::init
+ *
+ * Sends a signal with the current user name and forces the LSB module to generate an image
+ * and display it on the user interface
+ */
 void QmlBridge::init()
 {
     newParticipant(getUserName());
     enableGeneratedImages(true);
 }
 
+/**
+ * @brief QmlBridge::sendFile
+ *
+ * Loads a file from the computer using system dialogs, reads the file data into memory,
+ * encrypts the file and saves the file inside an image using LSB.
+ *
+ * After all that pre-processing, the binary data of the image is sent to the connected peers.
+ */
 void QmlBridge::sendFile()
 {
     // Get file path
@@ -155,18 +211,20 @@ void QmlBridge::sendFile()
     QFileInfo fileInfo(path);
     QString fileName = fileInfo.fileName();
 
+    // Generate JSON data
+    QByteArray json = GET_JSON_DATA("File", fileName, fileData);
+
     // Encrypt file (if required) and encode it with Base64
     bool encryptionOk;
     bool allowSendingData;
-    QString base64 = encodeData(fileData, &encryptionOk, &allowSendingData);
+    QByteArray data = encryptData(json, &encryptionOk, &allowSendingData);
 
     // Abort if user denied sending data
     if(!allowSendingData)
         return;
 
-    // Generate JSON binary data, load data into image and send image data
-    QByteArray json = GET_JSON_DATA("File",fileName, base64, encryptionOk);
-    QImage lsbImage = LSB::encodeData(json);
+    // Load data intro image and send it
+    QImage lsbImage = LSB::encodeData(data);
     m_comms.sendBinaryData(LSB::imageToBinaryData(lsbImage));
 
     // Generate message
@@ -177,9 +235,15 @@ void QmlBridge::sendFile()
 
     // Emit signal
     emit lsbImageChanged();
-    emit newMessage(getUserName() + (encryptionOk ? tr(" (Encrypted)") : ""), message);
+    emit newMessage(getUserName(), message, encryptionOk);
 }
 
+/**
+ * @brief QmlBridge::saveImages
+ *
+ * Asks the user to choose a directory, afterwards, the function saves the current images
+ * produced by the LSB module on the directory selected by the user.
+ */
 void QmlBridge::saveImages()
 {
     // Get folder where to save images
@@ -197,7 +261,7 @@ void QmlBridge::saveImages()
 
     // Save both LSB images as PNG
     bool ok = true;
-    ok &= data.save(QDir(path).filePath("LSB_Data.png"), "PNG", 100);
+    ok &= data.save(QDir(path).filePath("LSB_Differential.png"), "PNG", 100);
     ok &= composite.save(QDir(path).filePath("LSB_Composite.png"), "PNG", 100);
 
     // Check if images where saved correctly
@@ -217,6 +281,12 @@ void QmlBridge::saveImages()
     QDesktopServices::openUrl(compositeUrl);
 }
 
+/**
+ * @brief QmlBridge::extractInformation
+ *
+ * Lets the user select any PNG image. Afterwards, the PNG image is loaded into memory and sent
+ * for data decoding to the LSB module.
+ */
 void QmlBridge::extractInformation()
 {
     // Select image
@@ -243,6 +313,12 @@ void QmlBridge::extractInformation()
                              tr("Cannot open file for reading, wrong permisions?"));
 }
 
+/**
+ * @brief QmlBridge::selectLsbImageSource
+ *
+ * Let's the user select any image from the system. Afterwards, the image is loaded into the
+ * LSB module to be used as the source image for the LSB-Write algorithm.
+ */
 void QmlBridge::selectLsbImageSource()
 {
     // Select image
@@ -264,6 +340,15 @@ void QmlBridge::selectLsbImageSource()
     }
 }
 
+/**
+ * @brief QmlBridge::sendMessage
+ * @param text
+ *
+ * Validates the given text, generates the appropiate JSON container and encrypts the resulting
+ * data. Afterwards, the JSON data is saved into an image using the LSB module.
+ *
+ * Finally, the image data is sent to the connected peers.
+ */
 void QmlBridge::sendMessage(const QString& text)
 {
     // Text is empty abort
@@ -278,37 +363,61 @@ void QmlBridge::sendMessage(const QString& text)
         return;
     }
 
+    // Generate JSON data
+    QByteArray json = GET_JSON_DATA("Text", "", text.toUtf8());
+
     // Encrypt the text (if required) and encode it with Base64
     bool encryptionOk;
     bool allowSendingData;
-    QString base64 = encodeData(text.toUtf8(), &encryptionOk, &allowSendingData);
+    QByteArray data = encryptData(json, &encryptionOk, &allowSendingData);
 
     // Abort if user denied sending data
     if(!allowSendingData)
         return;
 
     // Generate JSON binary data, load data into image and send image data
-    QByteArray json = GET_JSON_DATA("Text", "", base64, encryptionOk);
-    QImage lsbImage = LSB::encodeData(json);
+    QImage lsbImage = LSB::encodeData(data);
     m_comms.sendBinaryData(LSB::imageToBinaryData(lsbImage));
 
     // Emit signal
     emit lsbImageChanged();
-    emit newMessage(getUserName(), text);
+    emit newMessage(getUserName(), text, encryptionOk);
 }
 
+/**
+ * @brief QmlBridge::setPassword
+ * @param password
+ *
+ * Changes the password to be used for encrypting/decrypting messages and files.
+ */
 void QmlBridge::setPassword(const QString& password)
 {
     m_password = password;
     emit passwordChanged();
 }
 
+/**
+ * @brief QmlBridge::setCryptoEnabled
+ * @param enabled
+ *
+ * Enables or disables the crypto module.
+ */
 void QmlBridge::setCryptoEnabled(const bool enabled)
 {
     m_cryptoEnabled = enabled;
     emit cryptoEnabledChanged();
 }
 
+/**
+ * @brief QmlBridge::enableGeneratedImages
+ * @param enabled
+ *
+ * If @a enabled is set to @c true, LSB module will generate an image filled with random pixels
+ * for each time the user executes the LSB-Write algorithm.
+ *
+ * If @a enabled is set to @c false, LSB module will execute the LSB-Write algorithm over an
+ * existing image selected by the user.
+ */
 void QmlBridge::enableGeneratedImages(const bool enabled)
 {
     LSB::enableGeneratedImages(enabled);
@@ -320,6 +429,12 @@ void QmlBridge::enableGeneratedImages(const bool enabled)
     emit lsbImageSourceChanged();
 }
 
+/**
+ * @brief QmlBridge::handleNewParticipant
+ * @param name
+ *
+ * Appends the given @a name to the peer list and notifies the UI.
+ */
 void QmlBridge::handleNewParticipant(const QString& name)
 {
     if(!getPeers().contains(name)) {
@@ -328,6 +443,12 @@ void QmlBridge::handleNewParticipant(const QString& name)
     }
 }
 
+/**
+ * @brief QmlBridge::handleParticipantLeft
+ * @param name
+ *
+ * Removes the given @a name from the peer list and notifies the UI.
+ */
 void QmlBridge::handleParticipantLeft(const QString& name)
 {
     if(getPeers().contains(name)) {
@@ -336,6 +457,23 @@ void QmlBridge::handleParticipantLeft(const QString& name)
     }
 }
 
+/**
+ * @brief QmlBridge::handleMessages
+ * @param name
+ * @param data
+ *
+ * Decodes the information contained in the given @a data packet using the LSB-Read algorithm,
+ * and proceedes to interpret the information inside the JSON container.
+ *
+ * If the JSON container is invalid, the function tries to use the Crypto module to decrypt
+ * the JSON container. If the container is still invalid, the function aborts the operation.
+ *
+ * If the container is valid, the function proceedes to extract the Base64-encoded message/file
+ * from the container and display it in the UI.
+ *
+ * @note If the container corresponds to a file-type message, then the file is saved on the
+ *       downloads directory of the user interface.
+ */
 void QmlBridge::handleMessages(const QString& name, const QByteArray& data)
 {
     // Ignore empty packets
@@ -346,12 +484,33 @@ void QmlBridge::handleMessages(const QString& name, const QByteArray& data)
     QByteArray jsonData = LSB::decodeData(data);
     QJsonDocument document = QJsonDocument::fromJson(jsonData);
 
+    // JSON is invalid, try to decipher it
+    bool encrypted = false;
+    if (document.isEmpty()) {
+        // Run decipher algorithm
+        CryptoError error;
+        jsonData = Crypto::decryptData(jsonData, getPassword().toUtf8(), &error);
+
+        // Decipher error
+        if (error != kNoError)
+            return;
+
+        // Read again JSON
+        document = QJsonDocument::fromJson(jsonData);
+
+        // Abort if JSON is invalid
+        if (document.isEmpty())
+            return;
+
+        // Set encrypted flag to true
+        encrypted = true;
+    }
+
     // Update the LSB image
     emit lsbImageChanged();
 
     // Get data from JSON object
     const int length = document.object().value("Length").toInt();
-    const bool encrypted = document.object().value("Encrypted").toBool();
     const QString fileName = document.object().value("FileName").toString();
     const QString messageType = document.object().value("MessageType").toString();
     const QString base64 = document.object().value("Base64").toString();
@@ -363,24 +522,9 @@ void QmlBridge::handleMessages(const QString& name, const QByteArray& data)
     // Convert from Base64 to normal data
     QByteArray msgData = QByteArray::fromBase64(base64.toUtf8());
 
-    // Decrypt data if possible
-    if(encrypted) {
-        // User has no password set, abort
-        if (getPassword().isEmpty())
-            return;
-
-        // Try to decrypt data with current password
-        CryptoError error;
-        QByteArray decrypted = Crypto::decryptData(msgData, getPassword().toUtf8(), &error);
-
-        // No error, replace msgData with decrypted data
-        if (error == kNoError)
-            msgData = decrypted;
-    }
-
     // Data is a message -> display it on the chat room
     if(messageType == "Text")
-        emit newMessage(name, QString::fromUtf8(msgData));
+        emit newMessage(name, QString::fromUtf8(msgData), encrypted);
 
     // Data is a file -> save it to downloads and generate message
     else if(messageType == "File") {
@@ -395,11 +539,22 @@ void QmlBridge::handleMessages(const QString& name, const QByteArray& data)
                               .arg(fileName)
                               .arg(url.toString());
 
-            emit newMessage(name, message);
+            emit newMessage(name, message, encrypted);
         }
     }
 }
 
+/**
+ * @brief QmlBridge::saveFile
+ * @param name
+ * @param data
+ * @param ok
+ * @return
+ *
+ * Saves the given binary @a data under the given @a name in the downloads folder. If everything
+ * works out as intended, the value of @a ok is set to @c true and the function returns
+ * the full path to the downloaded file.
+ */
 QString QmlBridge::saveFile(const QString& name, const QByteArray& data, bool* ok)
 {
     // Check arguments
@@ -432,7 +587,24 @@ QString QmlBridge::saveFile(const QString& name, const QByteArray& data, bool* o
     return "";
 }
 
-QString QmlBridge::encodeData(const QByteArray& data, bool* cryptoOk, bool* continueSending)
+/**
+ * @brief QmlBridge::encodeData
+ * @param data
+ * @param cryptoOk
+ * @param continueSending
+ * @return
+ *
+ * Encrypts the given @a data (only if the crypto module is enabled).
+ *
+ * If an error occurs while trying to encrypt the data, the function will ask the user if he/she
+ * wants to continue senting the data. If the user decides to continue sending the data, the value
+ * of @a continueSending is set to @c true. Otherwise, the value of @a continueSending is set to
+ * @c false.
+ *
+ * If no encryption error occurs, or the crypto module is disabled, then the values of @a cryptoOk
+ * and @a continueSending are set to @c true.
+ */
+QByteArray QmlBridge::encryptData(const QByteArray& data, bool* cryptoOk, bool* continueSending)
 {
     // Check arguments
     Q_ASSERT(cryptoOk);
@@ -489,11 +661,11 @@ QString QmlBridge::encodeData(const QByteArray& data, bool* cryptoOk, bool* cont
         }
 
         // Return obtained data
-        return QString::fromUtf8(encryptedData.toBase64());
+        return encryptedData;
     }
 
     // Encryption disabled, send original data
     *cryptoOk = false;
     *continueSending = true;
-    return QString::fromUtf8(data.toBase64());
+    return data;
 }

@@ -29,6 +29,66 @@
 #include "LSB/LSB.h"
 #include "Comms/NetworkComms.h"
 
+class QmlBridge : public QObject
+{
+    Q_OBJECT Q_PROPERTY(QString userName READ getUserName CONSTANT)
+    Q_PROPERTY(QStringList peers READ getPeers NOTIFY peerCountChanged)
+    Q_PROPERTY(QString password READ getPassword WRITE setPassword NOTIFY passwordChanged)
+    Q_PROPERTY(bool cryptoEnabled READ getCryptoEnabled WRITE setCryptoEnabled NOTIFY
+               cryptoEnabledChanged)
+    Q_PROPERTY(bool generateImages READ getGenerateImagesEnabled WRITE enableGeneratedImages NOTIFY
+               lsbImageSourceChanged)
+
+signals:
+    void lsbImageChanged();
+    void chatTextUpdated();
+    void passwordChanged();
+    void peerCountChanged();
+    void cryptoEnabledChanged();
+    void lsbImageSourceChanged();
+    void newParticipant(const QString& name);
+    void participantLeft(const QString& name);
+    void newMessage(const QString& user, const QString& message, bool encrypted);
+
+public:
+    QmlBridge();
+
+    QImage userImage() const;
+    QString getUserName() const;
+    QString getPassword() const;
+    QStringList getPeers() const;
+    bool getCryptoEnabled() const;
+    bool getGenerateImagesEnabled() const;
+
+public slots:
+    void init();
+    void sendFile();
+    void saveImages();
+    void extractInformation();
+    void selectLsbImageSource();
+    void sendMessage(const QString& text);
+    void setPassword(const QString& password);
+    void setCryptoEnabled(const bool enabled);
+    void enableGeneratedImages(const bool enabled);
+
+private slots:
+    void handleNewParticipant(const QString& name);
+    void handleParticipantLeft(const QString& name);
+    void handleMessages(const QString& name, const QByteArray& data);
+
+private:
+    QString saveFile(const QString& name, const QByteArray& data, bool* ok);
+    QByteArray encryptData(const QByteArray& data, bool* ok, bool* continueSending);
+
+private:
+    QImage m_userImage;
+    QString m_password;
+    QStringList m_peers;
+    bool m_cryptoEnabled;
+    NetworkComms m_comms;
+    QStringList m_availableImages;
+};
+
 class LsbImageProvider : public QQuickImageProvider
 {
 public:
@@ -67,64 +127,4 @@ public:
             return pixmap;
         }
     }
-};
-
-class QmlBridge : public QObject
-{
-    Q_OBJECT Q_PROPERTY(QString userName READ getUserName CONSTANT)
-    Q_PROPERTY(QStringList peers READ getPeers NOTIFY peerCountChanged)
-    Q_PROPERTY(QString password READ getPassword WRITE setPassword NOTIFY passwordChanged)
-    Q_PROPERTY(bool cryptoEnabled READ getCryptoEnabled WRITE setCryptoEnabled NOTIFY
-               cryptoEnabledChanged)
-    Q_PROPERTY(bool generateImages READ getGenerateImagesEnabled WRITE enableGeneratedImages NOTIFY
-               lsbImageSourceChanged)
-
-signals:
-    void lsbImageChanged();
-    void chatTextUpdated();
-    void passwordChanged();
-    void peerCountChanged();
-    void cryptoEnabledChanged();
-    void lsbImageSourceChanged();
-    void newParticipant(const QString& name);
-    void participantLeft(const QString& name);
-    void newMessage(const QString& user, const QString& message);
-
-public:
-    QmlBridge();
-
-    QImage userImage() const;
-    QString getUserName() const;
-    QString getPassword() const;
-    QStringList getPeers() const;
-    bool getCryptoEnabled() const;
-    bool getGenerateImagesEnabled() const;
-
-public slots:
-    void init();
-    void sendFile();
-    void saveImages();
-    void extractInformation();
-    void selectLsbImageSource();
-    void sendMessage(const QString& text);
-    void setPassword(const QString& password);
-    void setCryptoEnabled(const bool enabled);
-    void enableGeneratedImages(const bool enabled);
-
-private slots:
-    void handleNewParticipant(const QString& name);
-    void handleParticipantLeft(const QString& name);
-    void handleMessages(const QString& name, const QByteArray& data);
-
-private:
-    QString saveFile(const QString& name, const QByteArray& data, bool* ok);
-    QString encodeData(const QByteArray& data, bool* ok, bool* continueSending);
-
-private:
-    QImage m_userImage;
-    QString m_password;
-    QStringList m_peers;
-    bool m_cryptoEnabled;
-    NetworkComms m_comms;
-    QStringList m_availableImages;
 };
