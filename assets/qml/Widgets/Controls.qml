@@ -26,258 +26,52 @@ import QtQuick.Controls 2.0
 import Qt.labs.settings 1.0
 
 GroupBox {
-    id: controls
-
-    //
-    // Set the preview URL to use
-    //
-    property string lsbImageUrl: "image://lsb/composite"
-
-
-    //
-    // Configure the size of the image
-    //
-    property int imageSize: 196
-
-    //
-    // Save/load settings
-    //
     Settings {
-        property alias password: passwordTf.text
-        property alias previewMode: lsbPreviewModeBt.checked
+        property alias pw: pwTextField.text
     }
 
-    //
-    // Set background rectangle
-    //
     background: Rectangle {
         border.width: 1
         color: palette.base
+        anchors.fill: parent
         border.color: palette.alternateBase
+        anchors.topMargin: title.length ? 20 : 0
     }
 
-    //
-    // Layout
-    //
-    ColumnLayout {
+    RowLayout {
         anchors.fill: parent
+        spacing: app.spacing
 
-        //
-        // Buttons
-        //
-        GridLayout {
-            id: gridLayout
-            columns: 4
-            rowSpacing: 0
-            Layout.fillWidth: true
-            readonly property real itemWidth: (controls.width - (columns * app.spacing)) / columns
-
-            Button {
-                id: lsbPreviewModeBt
-                icon.width: 24
-                icon.height: 24
-                icon.color: palette.buttonText
-                Layout.alignment: Qt.AlignVCenter
-                Layout.minimumWidth: gridLayout.itemWidth
-                Layout.maximumWidth: gridLayout.itemWidth
-                icon.source: checked ? "qrc:/icons/grain-24px.svg" :
-                                       "qrc:/icons/show_chart-24px.svg"
-                checkable: true
-                onCheckedChanged: {
-                    if (checked)
-                        lsbImageUrl = "image://lsb/data"
-                    else
-                        lsbImageUrl = "image://lsb/composite"
-
-                    image.source = ""
-                    image.source = lsbImageUrl
-                }
-            }
-
-            Button {
-                icon.width: 24
-                icon.height: 24
-                icon.color: palette.buttonText
-                onClicked: CBridge.saveImages()
-                Layout.alignment: Qt.AlignVCenter
-                icon.source: "qrc:/icons/save-24px.svg"
-                Layout.minimumWidth: gridLayout.itemWidth
-                Layout.maximumWidth: gridLayout.itemWidth
-            }
-
-            Button {
-                icon.width: 24
-                icon.height: 24
-                icon.color: palette.buttonText
-                Layout.alignment: Qt.AlignVCenter
-                onClicked: CBridge.selectLsbImageSource()
-                icon.source: "qrc:/icons/image_search-24px.svg"
-                Layout.minimumWidth: gridLayout.itemWidth
-                Layout.maximumWidth: gridLayout.itemWidth
-            }
-
-            Button {
-                icon.width: 24
-                icon.height: 24
-                icon.color: palette.buttonText
-                Layout.alignment: Qt.AlignVCenter
-                onClicked: CBridge.extractInformation()
-                Layout.minimumWidth: gridLayout.itemWidth
-                Layout.maximumWidth: gridLayout.itemWidth
-                icon.source: "qrc:/icons/unarchive-24px.svg"
-            }
-
-            Label {
-                font.pixelSize: 9
-                wrapMode: Label.WordWrap
-                width: gridLayout.itemWidth
-                horizontalAlignment: Text.AlignHCenter
-                Layout.minimumWidth: gridLayout.itemWidth
-                Layout.maximumWidth: gridLayout.itemWidth
-                text: lsbPreviewModeBt.checked ? qsTr("Show Composite Image") :
-                                                 qsTr("Show Differential Image")
-            }
-
-            Label {
-                font.pixelSize: 9
-                wrapMode: Label.WordWrap
-                width: gridLayout.itemWidth
-                text: qsTr("Save Output Images")
-                horizontalAlignment: Text.AlignHCenter
-                Layout.minimumWidth: gridLayout.itemWidth
-                Layout.maximumWidth: gridLayout.itemWidth
-            }
-
-            Label {
-                font.pixelSize: 9
-                wrapMode: Label.WordWrap
-                width: gridLayout.itemWidth
-                text: qsTr("Select Image Source")
-                horizontalAlignment: Text.AlignHCenter
-                Layout.minimumWidth: gridLayout.itemWidth
-                Layout.maximumWidth: gridLayout.itemWidth
-            }
-
-            Label {
-                font.pixelSize: 9
-                wrapMode: Label.WordWrap
-                width: gridLayout.itemWidth
-                text: qsTr("Extract Data from Image")
-                horizontalAlignment: Text.AlignHCenter
-                Layout.minimumWidth: gridLayout.itemWidth
-                Layout.maximumWidth: gridLayout.itemWidth
-            }
-        }
-
-        //
-        // Checkbox
-        //
-        CheckBox {
-            id: generateLsbImagesCheck
-            text: qsTr("Generate LSB images automatically")
-            onCheckedChanged: CBridge.enableGeneratedImages(checked)
-
-            Connections {
-                target: CBridge
-                onLsbImageSourceChanged: generateLsbImagesCheck.checked = CBridge.generateImages
-            }
-        }
-
-        //
-        // Spacer
-        //
-        Item {
-            Layout.fillHeight: true
-        }
-
-        //
-        // Password controls
-        //
-        RowLayout {
-            spacing: app.spacing
+        TextField {
+            id: pwTextField
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
+            placeholderText: qsTr("Set an encryption key") + "..."
+            echoMode: visibleBt.checked ? TextInput.Normal : TextInput.Password
 
-            TextField {
-                id: passwordTf
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignVCenter
-                placeholderText: qsTr("Enter a password") + "..."
-                echoMode: visibleBt.checked ? TextInput.Normal : TextInput.Password
-
-                onTextChanged: {
-                    CBridge.setPassword(text)
-                    if (text.length > 0)
-                        CBridge.setCryptoEnabled(true)
-                    else
-                        CBridge.setCryptoEnabled(false)
-                }
-
-                background: Rectangle {
-                    border.width: 1
-                    color: palette.alternateBase
-                    border.color: Qt.lighter(palette.alternateBase)
-                }
+            onTextChanged: {
+                CBridge.setPassword(text)
+                if (text.length > 0)
+                    CBridge.setCryptoEnabled(true)
+                else
+                    CBridge.setCryptoEnabled(false)
             }
 
-            Button {
-                id: visibleBt
-                checkable: true
-                icon.color: palette.buttonText
-                Layout.alignment: Qt.AlignVCenter
-                icon.source: checked ? "qrc:/icons/visibility_off-24px.svg" :
-                                       "qrc:/icons/visibility-24px.svg"
+            background: Rectangle {
+                border.width: 1
+                color: palette.alternateBase
+                border.color: Qt.lighter(palette.alternateBase)
             }
         }
 
-        //
-        // Spacer
-        //
-        Item {
-            height: Layout.fillHeighttrue
-        }
-
-        //
-        // Crypto config title
-        //
-        Label {
-            font.bold: true
-            font.pixelSize: 16
-            text: qsTr("Output Image Preview") + ":"
-        }
-
-        //
-        // Image display
-        //
-        Rectangle {
-            border.width: 2
-            color: palette.base
-            border.color: palette.alternateBase
-            Layout.alignment: Qt.AlignCenter
-            Layout.minimumWidth: imageSize - 2 * app.spacing
-            Layout.maximumWidth: imageSize - 2 * app.spacing
-            Layout.maximumHeight: imageSize - 2 * app.spacing
-            Layout.minimumHeight: imageSize - 2 * app.spacing
-
-            Image {
-                id: image
-                cache: false
-                smooth: false
-                anchors.margins: 2
-                asynchronous: false
-                source: lsbImageUrl
-                anchors.fill: parent
-                sourceSize: Qt.size(imageSize, imageSize)
-                fillMode: Image.PreserveAspectCrop
-
-                Connections {
-                    target: CBridge
-                    onLsbImageChanged: {
-                        image.source = ""
-                        image.source = lsbImageUrl
-                    }
-                }
-            }
+        Button {
+            id: visibleBt
+            checkable: true
+            icon.color: palette.buttonText
+            Layout.alignment: Qt.AlignVCenter
+            icon.source: checked ? "qrc:/icons/visibility_off-24px.svg" :
+                                   "qrc:/icons/visibility-24px.svg"
         }
     }
 }
+
