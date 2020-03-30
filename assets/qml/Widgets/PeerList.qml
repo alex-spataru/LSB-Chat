@@ -34,101 +34,85 @@ GroupBox {
     background: Rectangle {
         border.width: 1
         color: palette.base
+        anchors.fill: parent
         border.color: palette.alternateBase
+        anchors.topMargin: title.length ? 20 : 0
     }
 
     //
-    // Layout
+    // List
     //
-    ColumnLayout {
-        spacing: app.spacing
+    ListView {
+        id: list
+        clip: true
+        model: CBridge.peers
         anchors.fill: parent
+        ScrollBar.vertical: ScrollBar {}
 
         //
-        // Title
+        // Define how each individual element of the list should be
         //
-        Label {
-            font.bold: true
-            font.pixelSize: 16
-            text: qsTr("Connected Peers") + ":"
-        }
+        delegate: RowLayout {
+            height: 36
+            spacing: app.spacing / 2
+            width: peerList.width - 4 * app.spacing
 
-        //
-        // List
-        //
-        ListView {
-            id: list
-            clip: true
-            model: CBridge.peers
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            ScrollBar.vertical: ScrollBar {}
+            Connections {
+                target: CBridge
+                onNewMessage: {
+                    dot.opacity = (user === modelData) ? 0.80 : 0
+                    timer.start()
+                }
+            }
 
-            //
-            // Define how each individual element of the list should be
-            //
-            delegate: RowLayout {
-                height: 36
-                spacing: app.spacing / 2
-                width: peerList.width - 4 * app.spacing
+            Timer {
+                id: timer
+                interval: 200
+                onTriggered: dot.opacity = 0
+            }
 
-                Connections {
-                    target: CBridge
-                    onNewMessage: {
-                        dot.opacity = (user === modelData) ? 0.80 : 0
-                        timer.start()
-                    }
+            RoundButton {
+                icon.width: 32
+                icon.height: 32
+                background: Item {}
+                icon.color: palette.text
+                Layout.alignment: Qt.AlignVCenter
+                icon.source: "qrc:/icons/account_circle-24px.svg"
+            }
+
+            ColumnLayout {
+                spacing: app.spacing / 4
+                Layout.alignment: Qt.AlignVCenter
+
+                Label {
+                    font.bold: true
+                    font.pixelSize: 12
+                    width: list.width
+                    elide: Label.ElideRight
+                    text: modelData.split("@")[0]
                 }
 
-                Timer {
-                    id: timer
-                    interval: 200
-                    onTriggered: dot.opacity = 0
+                Label {
+                    font.pixelSize: 10
+                    width: list.width
+                    elide: Label.ElideRight
+                    text: modelData.split("@")[1]
                 }
+            }
 
-                RoundButton {
-                    icon.width: 32
-                    icon.height: 32
-                    background: Item {}
-                    icon.color: palette.text
-                    Layout.alignment: Qt.AlignVCenter
-                    icon.source: "qrc:/icons/account_circle-24px.svg"
-                }
+            Item {
+                Layout.fillWidth: true
+            }
 
-                ColumnLayout {
-                    spacing: app.spacing / 4
-                    Layout.alignment: Qt.AlignVCenter
-
-                    Label {
-                        font.bold: true
-                        font.pixelSize: 12
-                        width: list.width
-                        elide: Label.ElideRight
-                        text: modelData.split("@")[0]
-                    }
-
-                    Label {
-                        font.pixelSize: 10
-                        width: list.width
-                        elide: Label.ElideRight
-                        text: modelData.split("@")[1]
-                    }
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                Rectangle {
-                    id: dot
-                    width: 12
-                    height: 12
-                    opacity: 0
-                    color: "#00ff00"
-                    radius: width / 2
-                    Layout.alignment: Qt.AlignVCenter
-                    Behavior on opacity { NumberAnimation{duration: 100}}
-                }
+            Rectangle {
+                id: dot
+                width: 12
+                height: 12
+                opacity: 0
+                color: "#00ff00"
+                radius: width / 2
+                Layout.alignment: Qt.AlignVCenter
+                Behavior on opacity { NumberAnimation{duration: 100}}
             }
         }
     }

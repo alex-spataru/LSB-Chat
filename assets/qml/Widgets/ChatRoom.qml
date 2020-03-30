@@ -43,9 +43,19 @@ RowLayout {
     //
     // Chat log
     //
-    ChatLog {
+    ColumnLayout {
+        spacing: app.spacing
         Layout.fillWidth: true
         Layout.fillHeight: true
+
+        ChatLog {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+
+        ChatTextBox {
+            Layout.fillWidth: true
+        }
     }
 
     //
@@ -56,12 +66,16 @@ RowLayout {
         Layout.fillWidth: false
         Layout.fillHeight: true
 
+        Controls {
+            Layout.fillWidth: true
+        }
+
         PeerList {
             Layout.fillWidth: true
             Layout.fillHeight: true
         }
 
-        Controls {
+        ImagePreview {
             width: 296
             imageSize: width
             Layout.fillHeight: false

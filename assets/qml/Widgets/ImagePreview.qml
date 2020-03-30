@@ -21,6 +21,74 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Layouts 1.0
+import QtQuick.Controls 2.0
 
-Item {
+GroupBox {
+    id: controls
+
+    //
+    // Configure the size of the image
+    //
+    property int imageSize: 196
+
+    //
+    // Set background rectangle
+    //
+    background: Rectangle {
+        border.width: 1
+        color: palette.base
+        anchors.fill: parent
+        border.color: palette.alternateBase
+        anchors.topMargin: title.length ? 20 : 0
+    }
+
+    //
+    // Layout
+    //
+    ColumnLayout {
+        anchors.fill: parent
+
+        //
+        // Image display
+        //
+        Rectangle {
+            border.width: 2
+            color: palette.base
+            border.color: palette.alternateBase
+            Layout.alignment: Qt.AlignCenter
+            Layout.minimumWidth: imageSize - 2 * app.spacing
+            Layout.maximumWidth: imageSize - 2 * app.spacing
+            Layout.maximumHeight: imageSize - 2 * app.spacing
+            Layout.minimumHeight: imageSize - 2 * app.spacing
+
+            Image {
+                id: image
+                cache: false
+                smooth: false
+                anchors.margins: 2
+                asynchronous: false
+                anchors.fill: parent
+                source: app.lsbImageUrl
+                sourceSize: Qt.size(imageSize, imageSize)
+                fillMode: Image.PreserveAspectCrop
+
+                Connections {
+                    target: CBridge
+                    onLsbImageChanged: {
+                        image.source = ""
+                        image.source = app.lsbImageUrl
+                    }
+                }
+
+                Connections {
+                    target: app
+                    onLsbImageUrlChanged: {
+                        image.source = ""
+                        image.source = app.lsbImageUrl
+                    }
+                }
+            }
+        }
+    }
 }

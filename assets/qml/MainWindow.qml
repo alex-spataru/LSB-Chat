@@ -74,23 +74,111 @@ ApplicationWindow {
     palette.highlightedText: "#000000"
 
     //
-    // MainWindow Layout
+    // Toolbar
     //
-    ColumnLayout {
-        spacing: app.spacing
+    ToolBar {
+        id: toolbar
+        height: 48
 
         anchors {
-            fill: parent
-            margins: app.spacing
+            top: parent.top
+            left: parent.left
+            right: parent.right
         }
 
-        Widgets.ChatRoom {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+        Rectangle {
+            border.width: 1
+            border.color: palette.alternateBase
+
+            anchors {
+                fill: parent
+                topMargin: -border.width
+                leftMargin: -border.width * 10
+                rightMargin: -border.width * 10
+            }
+
+            gradient: Gradient {
+                GradientStop { position: 1; color: "#222" }
+                GradientStop { position: 0; color: "#444" }
+            }
         }
 
-        Widgets.ChatTextBox {
-            Layout.fillWidth: true
+        RowLayout {
+            spacing: app.spacing
+            anchors.fill: parent
+            anchors.margins: app.spacing
+
+            ToolButton {
+                icon.width: 24
+                icon.height: 24
+                checkable: true
+                Layout.fillHeight: true
+                icon.color: palette.text
+                text: checked ? qsTr("Show Composite Image") :
+                                qsTr("Show Differential Image")
+                icon.source: checked ? "qrc:/icons/grain-24px.svg" :
+                                       "qrc:/icons/show_chart-24px.svg"
+                onCheckedChanged: {
+                    if (checked)
+                        app.lsbImageUrl = "image://lsb/data"
+                    else
+                        app.lsbImageUrl = "image://lsb/composite"
+                }
+            }
+
+            ToolButton {
+                icon.width: 24
+                icon.height: 24
+                Layout.fillHeight: true
+                icon.color: palette.text
+                text: qsTr("Export Image")
+                onClicked: CBridge.saveImages()
+                icon.source: "qrc:/icons/save-24px.svg"
+            }
+
+            ToolButton {
+                icon.width: 24
+                icon.height: 24
+                Layout.fillHeight: true
+                icon.color: palette.text
+                text: qsTr("Select LSB source image")
+                onClicked: CBridge.selectLsbImageSource()
+                icon.source: "qrc:/icons/image_search-24px.svg"
+            }
+
+            ToolButton {
+                icon.width: 24
+                icon.height: 24
+                Layout.fillHeight: true
+                icon.color: palette.text
+                onClicked: CBridge.extractInformation()
+                text: qsTr("Extract Information from Image")
+                icon.source: "qrc:/icons/unarchive-24px.svg"
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            CheckBox {
+                id: generateLsbImagesCheck
+                text: qsTr("Generate LSB images automatically")
+                onCheckedChanged: CBridge.enableGeneratedImages(checked)
+
+                Connections {
+                    target: CBridge
+                    onLsbImageSourceChanged: generateLsbImagesCheck.checked = CBridge.generateImages
+                }
+            }
         }
+    }
+
+    //
+    // MainWindow Layout
+    //
+    Widgets.ChatRoom {
+        anchors.fill: parent
+        anchors.margins: app.spacing
+        anchors.topMargin: app.spacing + toolbar.height
     }
 }

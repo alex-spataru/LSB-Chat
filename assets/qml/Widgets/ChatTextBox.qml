@@ -27,8 +27,8 @@ import Qt.labs.settings 1.0
 
 RowLayout {
     spacing: app.spacing
-    Layout.minimumHeight: 32
-    Layout.maximumHeight: 32
+    Layout.minimumHeight: 28
+    Layout.maximumHeight: 28
 
     //
     // Clear message text field when a message is sent
@@ -60,17 +60,15 @@ RowLayout {
         onAccepted: messageSent(text)
         Layout.alignment: Qt.AlignVCenter
         placeholderText: qsTr("Please type a message") + "..."
-    }
-
-    //
-    // Send button
-    //
-    Button {
-        Layout.fillHeight: true
-        icon.color: palette.buttonText
-        Layout.alignment: Qt.AlignVCenter
-        enabled: textField.text.length > 0
-        onClicked: messageSent(textField.text)
-        icon.source: "qrc:/icons/send-24px.svg"
+        font.family: {
+            switch (Qt.platform.os.toString()) {
+            case "osx":
+                return "Menlo"
+            case "linux":
+                return "Mono"
+            case "windows":
+                return "Consolas"
+            }
+        }
     }
 }

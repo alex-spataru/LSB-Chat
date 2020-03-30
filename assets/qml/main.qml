@@ -29,6 +29,7 @@ Item {
     // Global properties
     //
     readonly property int spacing: 8
+    property string lsbImageUrl: "image://lsb/composite"
 
     //
     // MainWindow instance
