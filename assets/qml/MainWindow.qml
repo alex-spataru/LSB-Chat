@@ -74,6 +74,13 @@ ApplicationWindow {
     palette.highlightedText: "#000000"
 
     //
+    // Background color
+    //
+    background: Rectangle {
+        color: "#35354a"
+    }
+
+    //
     // Toolbar
     //
     ToolBar {

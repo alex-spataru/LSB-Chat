@@ -31,15 +31,7 @@ For example, here is a comparison between an image that has been "touched" by th
 
 For more clarity, below you can find the image with only the pixels that have been modified to acommodate data (check the diagonal line of the image):
 
-![Screenshot](doc/LSB_Data.png)
-
-The program is also capable of generating images to fit the data inputed by the user, here is an example of the composite image:
-
-![Screenshot](doc/LSB_Composite_Generated.png)
-
-... and the differential image:
-
-![Screenshot](doc/LSB_Data_Generated.png)
+![Screenshot](doc/LSB_Differential.png)
 
 
 ### TODOs

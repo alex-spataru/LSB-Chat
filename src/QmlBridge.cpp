@@ -273,7 +273,7 @@ void QmlBridge::saveImages()
     }
 
     // Get file URLs
-    QUrl dataUrl = QUrl::fromLocalFile(QDir(path).filePath("LSB_Data.png"));
+    QUrl dataUrl = QUrl::fromLocalFile(QDir(path).filePath("LSB_Differential.png"));
     QUrl compositeUrl = QUrl::fromLocalFile(QDir(path).filePath("LSB_Composite.png"));
 
     // Open files
@@ -491,16 +491,15 @@ void QmlBridge::handleMessages(const QString& name, const QByteArray& data)
         CryptoError error;
         jsonData = Crypto::decryptData(jsonData, getPassword().toUtf8(), &error);
 
-        // Decipher error
-        if (error != kNoError)
-            return;
-
-        // Read again JSON
-        document = QJsonDocument::fromJson(jsonData);
+        // Load JSON again if no error was found
+        if (error == kNoError)
+            document = QJsonDocument::fromJson(jsonData);
 
         // Abort if JSON is invalid
-        if (document.isEmpty())
+        if (document.isEmpty()) {
+            emit newMessage(name, tr("[Decipher error, set appropiate key]"), true);
             return;
+        }
 
         // Set encrypted flag to true
         encrypted = true;
