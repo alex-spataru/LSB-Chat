@@ -37,7 +37,7 @@ The program is also capable of generating images to fit the data inputed by the 
 
 ![Screenshot](doc/LSB_Composite_Generated.png)
 
-... and the diferencial image:
+... and the differential image:
 
 ![Screenshot](doc/LSB_Data_Generated.png)
 
