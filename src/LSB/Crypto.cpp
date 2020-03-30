@@ -42,9 +42,9 @@
  * @return
  *
  * Encrypts the given @a data in the following manner:
- * 1) With the length of the key, we execute a Caesar cypher on printable characters of the
- *    given @a data
- * 2) With the given key, we execute a XOR cypher on the output of the Caesar cypher
+ *   -# With the length of the key, we execute a Caesar cypher on printable characters of the
+ *      given @a data
+ *   -# With the given key, we execute a XOR cypher on the output of the Caesar cypher
  */
 QByteArray Crypto::encryptData(const QByteArray& data, const QByteArray& key, CryptoError* error)
 {
@@ -107,9 +107,9 @@ QByteArray Crypto::encryptData(const QByteArray& data, const QByteArray& key, Cr
  * @return
  *
  * Decyphers the given @a data in the following order:
- * 1) We execute a XOR cypher between the @a data and the @a key to obtain the original
- *    Caesar cypher
- * 2) We execute inverse Caesar algorithm to obtain original data
+ *   -# We execute a XOR cypher between the @a data and the @a key to obtain the original
+ *      Caesar cypher
+ *   -# We execute inverse Caesar algorithm to obtain original data
  */
 QByteArray Crypto::decryptData(const QByteArray& data, const QByteArray& key, CryptoError* error)
 {
