@@ -76,7 +76,11 @@ DISTFILES += \
     assets/qml/AboutWindow.qml \
     assets/qml/MainWindow.qml \
     assets/qml/PreferencesWindow.qml \
+    assets/qml/Widgets/ChatLog.qml \
     assets/qml/Widgets/ChatRoom.qml \
     assets/qml/Widgets/ChatTextBox.qml \
+    assets/qml/Widgets/Controls.qml \
+    assets/qml/Widgets/ImagePreview.qml \
+    assets/qml/Widgets/PeerList.qml \
     assets/qml/Widgets/WindowToolbar.qml \
     assets/qml/main.qml

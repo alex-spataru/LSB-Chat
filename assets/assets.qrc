@@ -24,5 +24,9 @@
         <file>icons/grain-24px.svg</file>
         <file>icons/show_chart-24px.svg</file>
         <file>icons/unarchive-24px.svg</file>
+        <file>qml/Widgets/ChatLog.qml</file>
+        <file>qml/Widgets/Controls.qml</file>
+        <file>qml/Widgets/ImagePreview.qml</file>
+        <file>qml/Widgets/PeerList.qml</file>
     </qresource>
 </RCC>

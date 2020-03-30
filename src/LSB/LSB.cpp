@@ -30,10 +30,10 @@
 /*
  * Define local variables
  */
+static QImage SOURCE_IMAGE;
+static QImage IMG_COMPOSITE;
+static QImage IMG_DIFFERENTIAL;
 static bool USE_GENERATED_IMAGES = true;
-static QImage LSB_IMAGE =  LSB::generateImage(100, true);
-static QImage SOURCE_IMAGE = LSB::generateImage(100, false);
-static QImage LSB_IMAGE_DATA =  LSB::generateImage(100, false);
 
 /*
  * Define image format to use when reading/exporting image data to binary data
@@ -99,14 +99,14 @@ void LSB::enableGeneratedImages(const bool enabled)
     USE_GENERATED_IMAGES = enabled;
 
     if(!enabled) {
-        LSB_IMAGE = SOURCE_IMAGE;
-        LSB_IMAGE_DATA = SOURCE_IMAGE;
+        IMG_COMPOSITE = SOURCE_IMAGE;
+        IMG_DIFFERENTIAL = SOURCE_IMAGE;
     }
 
     else {
-        LSB_IMAGE = generateImage(100, true);
         SOURCE_IMAGE = generateImage(0, false);
-        LSB_IMAGE_DATA = generateImage(100, false);
+        IMG_COMPOSITE = generateImage(1000, true);
+        IMG_DIFFERENTIAL = generateImage(1000, false);
     }
 }
 
@@ -124,8 +124,8 @@ void LSB::setSourceImage(const QImage& image)
     SOURCE_IMAGE = image;
 
     if(!useGeneratedImages()) {
-        LSB_IMAGE = SOURCE_IMAGE;
-        LSB_IMAGE_DATA = SOURCE_IMAGE;
+        IMG_COMPOSITE = SOURCE_IMAGE;
+        IMG_DIFFERENTIAL = SOURCE_IMAGE;
     }
 }
 
@@ -138,7 +138,10 @@ void LSB::setSourceImage(const QImage& image)
  */
 QImage LSB::currentCompositeImage()
 {
-    return LSB_IMAGE;
+    if (IMG_COMPOSITE.isNull())
+        IMG_COMPOSITE = generateImage(100, false);
+
+    return IMG_COMPOSITE;
 }
 
 /**
@@ -150,7 +153,10 @@ QImage LSB::currentCompositeImage()
  */
 QImage LSB::currentImageData()
 {
-    return LSB_IMAGE_DATA;
+    if (IMG_DIFFERENTIAL.isNull())
+        IMG_DIFFERENTIAL = generateImage(100, false);
+
+    return IMG_DIFFERENTIAL;
 }
 
 /**
@@ -175,15 +181,15 @@ QImage LSB::generateImage(const int size, const bool random)
     int b = 0;
 
     // Fill image pixels
-    for (int i = 0; i < image.width(); ++i) {
-        for (int j = 0; j < image.height(); ++j) {
-            if (random) {
-                r = generator.bounded(0, 100);
-                g = generator.bounded(0, 255);
-                b = generator.bounded(100, 255);
+    for (int i = 0; i < image.height(); ++i) {
+        for (int j = 0; j < image.width(); ++j) {
+            if (random && ((j % 20 == 0) || (i % 20 == 0))) {
+                r = generator.bounded(0, 3) * 100;
+                g = generator.bounded(0, 2) * 100;
+                b = generator.bounded(0, 3) * 100;
             }
 
-            image.setPixel(i, j, qRgb(r, g, b));
+            image.setPixel(j, i, qRgb(r, g, b));
         }
     }
 
@@ -216,19 +222,19 @@ QImage LSB::encodeData(const QByteArray& data)
 
     // Reset images (generate random image case)
     if(useGeneratedImages() || (SOURCE_IMAGE.width() == 0 && SOURCE_IMAGE.height() == 0)) {
-        const int size = injection.length() * 3.2;
-        LSB_IMAGE = generateImage(size, true);
-        LSB_IMAGE_DATA = generateImage(size, false);
+        const int size = qMin(10 * 10000.0, qMax(injection.length() * 3.2, 1000.0));
+        IMG_COMPOSITE = generateImage(size, true);
+        IMG_DIFFERENTIAL = generateImage(size, false);
     }
 
     // Reset images using source image
     else {
-        LSB_IMAGE = SOURCE_IMAGE;
-        LSB_IMAGE_DATA = generateImage(qMin(LSB_IMAGE.width(), LSB_IMAGE.height()), false);
+        IMG_COMPOSITE = SOURCE_IMAGE;
+        IMG_DIFFERENTIAL = generateImage(qMin(IMG_COMPOSITE.width(), IMG_COMPOSITE.height()), false);
     }
 
     // Calculate the diagonal length using the Pythagorean theorem
-    int cat = qMin(LSB_IMAGE.width(), LSB_IMAGE.height());
+    int cat = qMin(IMG_COMPOSITE.width(), IMG_COMPOSITE.height());
     int hyp = static_cast<int>(round(sqrt(2.0) * static_cast<double>(cat)));
 
     // Write data to image using LSB
@@ -240,9 +246,9 @@ QImage LSB::encodeData(const QByteArray& data)
 
         // Get byte & pixel value
         char byte = injection.at(bytesWritten);
-        QRgb pixel1 = LSB_IMAGE.pixel(i + 0, i + 0);
-        QRgb pixel2 = LSB_IMAGE.pixel(i + 1, i + 1);
-        QRgb pixel3 = LSB_IMAGE.pixel(i + 2, i + 2);
+        QRgb pixel1 = IMG_COMPOSITE.pixel(i + 0, i + 0);
+        QRgb pixel2 = IMG_COMPOSITE.pixel(i + 1, i + 1);
+        QRgb pixel3 = IMG_COMPOSITE.pixel(i + 2, i + 2);
 
         // Get individual bits
         int bits[8];
@@ -261,12 +267,12 @@ QImage LSB::encodeData(const QByteArray& data)
                               set_bit(qBlue(pixel3),  0, 1));
 
         // Update pixels of image
-        LSB_IMAGE.setPixel(i + 0, i + 0, lsbPixel1);
-        LSB_IMAGE.setPixel(i + 1, i + 1, lsbPixel2);
-        LSB_IMAGE.setPixel(i + 2, i + 2, lsbPixel3);
-        LSB_IMAGE_DATA.setPixel(i + 0, i + 0, lsbPixel1);
-        LSB_IMAGE_DATA.setPixel(i + 1, i + 1, lsbPixel2);
-        LSB_IMAGE_DATA.setPixel(i + 2, i + 2, lsbPixel3);
+        IMG_COMPOSITE.setPixel(i + 0, i + 0, lsbPixel1);
+        IMG_COMPOSITE.setPixel(i + 1, i + 1, lsbPixel2);
+        IMG_COMPOSITE.setPixel(i + 2, i + 2, lsbPixel3);
+        IMG_DIFFERENTIAL.setPixel(i + 0, i + 0, lsbPixel1);
+        IMG_DIFFERENTIAL.setPixel(i + 1, i + 1, lsbPixel2);
+        IMG_DIFFERENTIAL.setPixel(i + 2, i + 2, lsbPixel3);
 
         // Increment written bytes
         ++bytesWritten;
@@ -281,7 +287,7 @@ QImage LSB::encodeData(const QByteArray& data)
     }
 
     // Return the obtained image
-    return LSB_IMAGE;
+    return IMG_COMPOSITE;
 }
 
 /**
@@ -353,19 +359,12 @@ QByteArray LSB::decodeData(const QImage& image)
     }
 
     // Update current LSB image
-    LSB_IMAGE = image;
+    IMG_COMPOSITE = image;
 
     // Regenerate data image
-    LSB_IMAGE_DATA = image;
-    for(int i = 0; i < image.width(); ++i) {
-        if(i > 2 * dataLenght)
-            break;
-
-        for(int j = 0; j < image.height(); ++j) {
-            QRgb pixel = LSB_IMAGE_DATA.pixel(i, j);
-            LSB_IMAGE_DATA.setPixel(i, j, i == j ? pixel : qRgb(0, 0, 0));
-        }
-    }
+    IMG_DIFFERENTIAL = generateImage(cat, false);
+    for(int i = 0; i < cat; ++i)
+        IMG_DIFFERENTIAL.setPixel(i, i, IMG_COMPOSITE.pixel(i, i));
 
     // Return data
     return data;

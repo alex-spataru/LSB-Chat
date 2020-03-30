@@ -32,9 +32,9 @@
 #include <QDesktopServices>
 
 /*
- * Set maximum transfer limit to 1 MB
+ * Set maximum transfer limit to 50 Kb
  */
-static qint64 MAX_TRANSFER_SIZE = 1 * 1024;
+static qint64 MAX_TRANSFER_SIZE = 50 * 1024;
 
 /**
  * @brief GET_JSON_DATA

@@ -21,51 +21,6 @@
  */
 
 import QtQuick 2.0
-import QtQuick.Layouts 1.0
-import QtQuick.Controls 2.2
 
-RowLayout {
-    //
-    // Let the bridge know that it can begin updating the UI elements
-    //
-    Component.onCompleted: CBridge.init()
-
-    //
-    // Set spacing between components
-    //
-    spacing: app.spacing
-
-    //
-    // Define sidebar size
-    //
-    property int sidebarSize: 250
-
-    //
-    // Chat log
-    //
-    ChatLog {
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-    }
-
-    //
-    // Peer list and controls
-    //
-    ColumnLayout {
-        spacing: app.spacing
-        Layout.fillWidth: false
-        Layout.fillHeight: true
-
-        PeerList {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-        }
-
-        Controls {
-            width: 296
-            imageSize: width
-            Layout.fillHeight: false
-            Layout.maximumWidth: 296
-        }
-    }
+Item {
 }

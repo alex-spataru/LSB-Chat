@@ -40,6 +40,17 @@ RowLayout {
     }
 
     //
+    // Attach button
+    //
+    Button {
+        Layout.fillHeight: true
+        icon.color: palette.buttonText
+        onClicked: CBridge.sendFile()
+        Layout.alignment: Qt.AlignVCenter
+        icon.source: "qrc:/icons/attach_file-24px.svg"
+    }
+
+    //
     // Message field
     //
     TextField {
@@ -61,16 +72,5 @@ RowLayout {
         enabled: textField.text.length > 0
         onClicked: messageSent(textField.text)
         icon.source: "qrc:/icons/send-24px.svg"
-    }
-
-    //
-    // Attach button
-    //
-    Button {
-        Layout.fillHeight: true
-        icon.color: palette.buttonText
-        onClicked: CBridge.sendFile()
-        Layout.alignment: Qt.AlignVCenter
-        icon.source: "qrc:/icons/attach_file-24px.svg"
     }
 }
