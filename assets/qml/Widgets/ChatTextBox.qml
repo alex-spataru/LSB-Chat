@@ -43,9 +43,10 @@ RowLayout {
     // Attach button
     //
     Button {
+        Layout.maximumWidth: height
         Layout.fillHeight: true
-        icon.color: palette.buttonText
         onClicked: CBridge.sendFile()
+        icon.color: palette.buttonText
         Layout.alignment: Qt.AlignVCenter
         icon.source: "qrc:/icons/attach_file-24px.svg"
     }
@@ -59,7 +60,7 @@ RowLayout {
         Layout.fillHeight: true
         onAccepted: messageSent(text)
         Layout.alignment: Qt.AlignVCenter
-        placeholderText: qsTr("Please type a message") + "..."
+        placeholderText: qsTr("Type something") + "..."
         font.family: {
             switch (Qt.platform.os.toString()) {
             case "osx":

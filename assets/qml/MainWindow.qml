@@ -38,8 +38,8 @@ ApplicationWindow {
     //
     // Window geometry
     //
-    minimumWidth: 740
-    minimumHeight: 700
+    minimumWidth: 760
+    minimumHeight: 520
 
     //
     // Window title
@@ -111,11 +111,42 @@ ApplicationWindow {
             ToolButton {
                 icon.width: 24
                 icon.height: 24
+                text: qsTr("Export")
+                Layout.fillHeight: true
+                icon.color: palette.text
+                onClicked: CBridge.saveImages()
+                icon.source: "qrc:/icons/save-24px.svg"
+            }
+
+            ToolButton {
+                icon.width: 24
+                icon.height: 24
+                Layout.fillHeight: true
+                icon.color: palette.text
+                text: qsTr("Select Base Image")
+                onClicked: CBridge.selectLsbImageSource()
+                icon.source: "qrc:/icons/image_search-24px.svg"
+            }
+
+            ToolButton {
+                icon.width: 24
+                icon.height: 24
+                Layout.fillHeight: true
+                icon.color: palette.text
+                text: qsTr("Decode Image")
+                onClicked: CBridge.extractInformation()
+                icon.source: "qrc:/icons/unarchive-24px.svg"
+            }
+
+
+            ToolButton {
+                icon.width: 24
+                icon.height: 24
                 checkable: true
                 Layout.fillHeight: true
                 icon.color: palette.text
-                text: checked ? qsTr("Show Composite Image") :
-                                qsTr("Show Differential Image")
+                text: checked ? qsTr("Composite Image") :
+                                qsTr("Differential Image")
                 icon.source: checked ? "qrc:/icons/grain-24px.svg" :
                                        "qrc:/icons/show_chart-24px.svg"
                 onCheckedChanged: {
@@ -126,43 +157,13 @@ ApplicationWindow {
                 }
             }
 
-            ToolButton {
-                icon.width: 24
-                icon.height: 24
-                Layout.fillHeight: true
-                icon.color: palette.text
-                text: qsTr("Export Image")
-                onClicked: CBridge.saveImages()
-                icon.source: "qrc:/icons/save-24px.svg"
-            }
-
-            ToolButton {
-                icon.width: 24
-                icon.height: 24
-                Layout.fillHeight: true
-                icon.color: palette.text
-                text: qsTr("Select LSB source image")
-                onClicked: CBridge.selectLsbImageSource()
-                icon.source: "qrc:/icons/image_search-24px.svg"
-            }
-
-            ToolButton {
-                icon.width: 24
-                icon.height: 24
-                Layout.fillHeight: true
-                icon.color: palette.text
-                onClicked: CBridge.extractInformation()
-                text: qsTr("Extract Information from Image")
-                icon.source: "qrc:/icons/unarchive-24px.svg"
-            }
-
             Item {
                 Layout.fillWidth: true
             }
 
             CheckBox {
                 id: generateLsbImagesCheck
-                text: qsTr("Generate LSB images automatically")
+                text: qsTr("Auto-generate image")
                 onCheckedChanged: CBridge.enableGeneratedImages(checked)
 
                 Connections {
