@@ -17,5 +17,7 @@
         <file>qml/Widgets/Controls.qml</file>
         <file>qml/Widgets/ImagePreview.qml</file>
         <file>qml/Widgets/PeerList.qml</file>
+        <file>translations/en.qm</file>
+        <file>translations/es.qm</file>
     </qresource>
 </RCC>

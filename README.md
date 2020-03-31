@@ -25,14 +25,13 @@ According to [Vangie Beal](https://www.webopedia.com/TERM/S/steganography.html),
 
 LSB steganography works by replacing the least significant bit with bits of different information. This hidden information can be just about anything. The goal of this project is to be able to share encrypted information over the LAN through images in a global chat room.
 
-For example, here is a comparison between an image that has been "touched" by this program:
+For example, here is an image that has been modified to indclude some hidden data:
 
 ![Screenshot](doc/LSB_Composite.png)
 
-For more clarity, below you can find the image with only the pixels that have been modified to acommodate data (check the diagonal line of the image):
+For more clarity, the program also generates an image with only the pixels that have been modified to acommodate data (check the diagonal line of the image):
 
-![Screenshot](doc/LSB_Differential.png)
-
+![Screenshot](doc/LSB_Differential.png) 
 
 ### TODOs
 

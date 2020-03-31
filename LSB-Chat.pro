@@ -31,6 +31,14 @@ QT += quickcontrols2
 QTPLUGIN += qsvg
 
 #-------------------------------------------------------------------------------
+# Translations
+#-------------------------------------------------------------------------------
+
+TRANSLATIONS += \
+    assets/translations/en.ts \
+    assets/translations/es.ts
+
+#-------------------------------------------------------------------------------
 # Deploy options
 #-------------------------------------------------------------------------------
 
@@ -57,7 +65,8 @@ HEADERS += \
     src/Comms/TCP_Listener.h \
     src/LSB/Crypto.h \
     src/LSB/LSB.h \
-    src/QmlBridge.h
+    src/QmlBridge.h \
+    src/Translator.h
 
 SOURCES += \
     src/Comms/NetworkComms.cpp \
@@ -67,6 +76,7 @@ SOURCES += \
     src/LSB/Crypto.cpp \
     src/LSB/LSB.cpp \
     src/QmlBridge.cpp \
+    src/Translator.cpp \
     src/main.cpp
 
 RESOURCES += \

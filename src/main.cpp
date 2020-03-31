@@ -27,6 +27,7 @@
 
 #include "AppInfo.h"
 #include "QmlBridge.h"
+#include "Translator.h"
 
 int main(int argc, char** argv)
 {
@@ -39,10 +40,13 @@ int main(int argc, char** argv)
     app.setOrganizationDomain(APP_SUPPORT_URL);
 
     QmlBridge bridge;
+    Translator translator;
     QQmlApplicationEngine engine;
+    Translator::DeclareQML();
     QQuickStyle::setStyle("Fusion");
     engine.addImageProvider(QLatin1String("lsb"), new LsbImageProvider);
     engine.rootContext()->setContextProperty("CBridge", &bridge);
+    engine.rootContext()->setContextProperty ("Translator", &translator);
     engine.rootContext()->setContextProperty("CAppName", app.applicationName());
     engine.rootContext()->setContextProperty("CAppVersion", app.applicationVersion());
     engine.rootContext()->setContextProperty("CAppOrganization", app.organizationName());
