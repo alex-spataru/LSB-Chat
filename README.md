@@ -12,10 +12,12 @@ In order to read the original data, the user who receives the data must know the
 
 ### Project structture
 
-- `src` contains the C++ source code.
 - `doc` contains project documentation and screenshots.
-- `assets` contains images, icons and QML interface-description files.
-- `deploy` contains files specific for each target operating system.
+- `tests`contains the unit tests of the application.
+- `util`contains code formatting scripts based on [astyle](http://astyle.sourceforge.net).
+- `program/src` contains the C++ source code.
+- `program/assets` contains images, icons and QML interface-description files.
+- `program/deploy` contains files specific for each target operating system.
 
 ### What is LSB Steganography?
 
