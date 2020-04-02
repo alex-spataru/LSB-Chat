@@ -35,6 +35,8 @@ For more clarity, the program also generates an image with only the pixels that 
 
 ![Screenshot](doc/LSB_Differential.png) 
 
+If you are interested in reading about the proposed architecture and how this software works, feel free to check the [project report PDF](doc/LSB-Chat-Report.pdf) (in Spanish).
+
 ### TODOs
 
 - [x] Implement networking module
@@ -42,7 +44,7 @@ For more clarity, the program also generates an image with only the pixels that 
 - [x] Implement crypto module
 - [x] Implement C++/QML bridge class
 - [x] Implement user interface elements
-- [ ] Software testing
+- [x] Software testing
 
 ### License
 
